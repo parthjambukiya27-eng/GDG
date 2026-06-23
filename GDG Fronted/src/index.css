@@ -414,3 +414,11 @@ body.loading {
 .align-self-end {
   align-self: flex-end;
 }
+
+/* Force 75% zoom scale on desktop screens for optimal layout proportions */
+@media (min-width: 1025px) {
+  body {
+    zoom: 0.75;
+  }
+}
+
