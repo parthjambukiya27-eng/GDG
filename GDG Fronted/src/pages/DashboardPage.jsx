@@ -296,7 +296,11 @@ Show this ticket code at entry.
           <Space>
             <Avatar 
               src={isCurrentUser ? user?.avatarUrl : null}
-              style={{ backgroundColor: record.rank === 1 ? '#FBBC05' : '#4285F4' }}
+              style={{ 
+                background: (isCurrentUser && user?.avatarUrl) ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
+                fontWeight: 'bold',
+                border: 'none'
+              }}
             >
               {!isCurrentUser || !user?.avatarUrl ? text.charAt(0) : null}
             </Avatar>
@@ -396,7 +400,11 @@ Show this ticket code at entry.
               >
                 <Avatar 
                   src={user?.avatarUrl} 
-                  style={{ backgroundColor: '#4285F4', fontWeight: 'bold' }}
+                  style={{ 
+                    background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                    fontWeight: 'bold',
+                    border: 'none'
+                  }}
                 >
                   {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
                 </Avatar>
@@ -492,10 +500,11 @@ Show this ticket code at entry.
                           size={80} 
                           src={user?.avatarUrl}
                           style={{ 
-                            backgroundColor: '#4285F4', 
+                            background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                             fontSize: 32, 
                             fontWeight: 'bold', 
                             boxShadow: '0 4px 12px rgba(66,133,244,0.3)',
+                            border: 'none'
                           }}
                         >
                           {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
