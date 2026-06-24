@@ -4,17 +4,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const getTokenFromHeader = (req) => {
+  const authHeader = req.header('Authorization');
+  if (!authHeader) return null;
+  return authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+};
+
 // @route   POST api/auth/register
 // @desc    Register a new developer user
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, interests } = req.body;
-
-
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: normalizedEmail });
     if (user) {
       return res.status(400).json({ message: 'User already exists with this email address' });
     }
@@ -22,7 +27,7 @@ router.post('/register', async (req, res) => {
     // Create user instance
     user = new User({
       name,
-      email,
+      email: normalizedEmail,
       password,
       interests
     });
@@ -73,11 +78,10 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Find User
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -126,7 +130,7 @@ router.post('/login', async (req, res) => {
 // @access  Private
 router.put('/avatar', async (req, res) => {
   try {
-    const token = req.header('Authorization');
+    const token = getTokenFromHeader(req);
     if (!token) {
       return res.status(401).json({ message: 'No authorization token, access denied' });
     }
@@ -154,6 +158,34 @@ router.put('/avatar', async (req, res) => {
     });
   } catch (error) {
     console.error('Update Avatar Error:', error.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// @route   DELETE api/auth/delete
+// @desc    Delete authenticated user account permanently
+// @access  Private
+router.delete('/delete', async (req, res) => {
+  try {
+    const token = getTokenFromHeader(req);
+    if (!token) {
+      return res.status(401).json({ message: 'No authorization token, access denied' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gdg_iitbhilai_super_secret_key_123!');
+    const userId = decoded.user.id;
+
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete Account Error:', error.message);
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
     res.status(500).json({ message: 'Server Error' });
   }
 });

@@ -79,7 +79,7 @@ const AuthPage = ({ currentPath, navigate }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword })
       });
       
       const data = await response.json();
@@ -137,7 +137,7 @@ const AuthPage = ({ currentPath, navigate }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: regName,
-          email: regEmail,
+          email: regEmail.trim().toLowerCase(),
           password: regPassword,
           interests: selectedInterests
         })

@@ -8,7 +8,7 @@ import {
   DashboardOutlined, CalendarOutlined, BookOutlined, 
   ProjectOutlined, TrophyOutlined, SearchOutlined, 
   BellOutlined, UserOutlined, LogoutOutlined, HomeOutlined, 
-  CheckCircleOutlined, DownloadOutlined, TeamOutlined, 
+  CheckCircleOutlined, DeleteOutlined, DownloadOutlined, TeamOutlined, 
   RocketOutlined, StarOutlined, MenuUnfoldOutlined, MenuFoldOutlined,
   VideoCameraOutlined, CameraOutlined
 } from '@ant-design/icons';
@@ -194,18 +194,20 @@ const leaderboardData = [
   }
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchResults, setSearchResults] = useState({
     events: [],
     tracks: [],
     projects: [],
     leaderboard: []
   });
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef(null);
 
   const dynamicLeaderboardData = leaderboardData.map(item => {
@@ -214,18 +216,6 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
     }
     return item;
   });
-
-  // Global key listener for Ctrl+K / Cmd+K to toggle search
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setShowSearchModal(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Search function to find items across all dashboard sections
   const performSearch = (query) => {
@@ -279,15 +269,6 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
     performSearch(query);
   };
 
-  const handleSearchOpen = () => {
-    setShowSearchModal(true);
-  };
-
-  const handleSearchClose = () => {
-    setShowSearchModal(false);
-    setSearchQuery('');
-    setSearchResults({ events: [], tracks: [], projects: [], leaderboard: [] });
-  };
 
   const handleRsvpToggle = (eventId) => {
     setEvents(events.map(ev => {
@@ -333,6 +314,49 @@ Show this ticket code at entry.
   const handleApplyProject = (project) => {
     setAppliedProjects([...appliedProjects, project.id]);
     message.success(`Application sent for "${project.title}"!`);
+  };
+
+  const handleDeleteAccount = async () => {
+    Modal.confirm({
+      title: 'Delete your account? This cannot be undone.',
+      content: 'This will remove your account permanently from the GDG portal.',
+      okText: 'Delete Account',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setIsDeletingAccount(true);
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            message.error('Session expired. Please sign in again.');
+            return;
+          }
+
+          const response = await fetch(`${API_BASE_URL}/api/auth/delete`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || 'Unable to delete your account.');
+          }
+
+          message.success('Account deleted permanently.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          if (onLogout) onLogout();
+          navigate('#/');
+        } catch (err) {
+          message.error(err.message || 'Failed to delete account.');
+        } finally {
+          setIsDeletingAccount(false);
+        }
+      }
+    });
   };
 
   const handleFileChange = (e) => {
@@ -450,22 +474,26 @@ Show this ticket code at entry.
             </div>
           </Space>
 
-          <div 
-            onClick={handleSearchOpen}
-            style={{ width: '100%', maxWidth: 360, cursor: 'pointer' }}
-            className="max-sm:hidden"
-          >
-            <Input 
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />} 
+<div style={{ width: '100%', maxWidth: 460 }} className="max-sm:hidden">
+            <Input
+              size="large"
+              prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
               suffix={
-                <Tag color="default" style={{ margin: 0, fontSize: '0.7rem', backgroundColor: 'rgba(255,255,255,0.08)', border: 'none', color: '#9aa0a6' }}>
+                <Tag color="default" style={{ margin: 0, fontSize: '0.72rem', backgroundColor: 'rgba(255,255,255,0.08)', border: 'none', color: '#9aa0a6', padding: '4px 10px', borderRadius: 16 }}>
                   Ctrl K
                 </Tag>
               }
-              placeholder="Search dashboard..." 
-              style={{ borderRadius: 10, pointerEvents: 'none' }}
+              placeholder="Search members, events, projects..."
               value={searchQuery}
-              readOnly
+              onChange={handleSearch}
+              allowClear
+              style={{
+                borderRadius: 28,
+                background: '#10131a',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#ffffff',
+                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.24)'
+              }}
             />
           </div>
 
@@ -475,7 +503,6 @@ Show this ticket code at entry.
               type="text"
               shape="circle"
               icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
-              onClick={handleSearchOpen}
               className="sm:hidden"
             />
 
@@ -547,11 +574,14 @@ Show this ticket code at entry.
                 { key: 'tracks', icon: <BookOutlined />, label: 'Learning Tracks' },
                 { key: 'projects', icon: <ProjectOutlined />, label: 'Project Finder' },
                 { key: 'leaderboard', icon: <TrophyOutlined />, label: 'Leaderboard' },
+                { key: 'delete', icon: <DeleteOutlined />, label: 'Delete Account', danger: true },
                 { key: 'logout', icon: <LogoutOutlined />, label: 'Sign Out', danger: true }
               ]}
               onClick={({ key }) => {
                 if (key === 'logout') {
                   onLogout();
+                } else if (key === 'delete') {
+                  handleDeleteAccount();
                 } else {
                   const element = document.getElementById(key);
                   if (element) {
@@ -577,6 +607,214 @@ Show this ticket code at entry.
                   Here is what is happening in the GDG IIT Bhilai chapter today.
                 </Text>
               </div>
+
+              {searchQuery && (
+                <Card 
+                  bordered={false} 
+                  style={{
+                    marginBottom: 24,
+                    background: '#14161d',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: '0 16px 50px rgba(0,0,0,0.16)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                    <Text style={{ color: '#9aa0a6' }}>
+                      Showing <Text strong style={{ color: '#4285F4' }}>
+                        {searchResults.events.length + searchResults.tracks.length + searchResults.projects.length + searchResults.leaderboard.length}
+                      </Text> results for "<Text strong>{searchQuery}</Text>"
+                    </Text>
+                    <Button type="text" onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults({ events: [], tracks: [], projects: [], leaderboard: [] });
+                    }} style={{ color: '#9aa0a6' }}>
+                      Clear
+                    </Button>
+                  </div>
+
+                  {searchResults.events.length > 0 && (
+                    <div style={{ marginBottom: 24 }}>
+                      <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#EA4335' }}>
+                        📅 Events ({searchResults.events.length})
+                      </Text>
+                      <List
+                        dataSource={searchResults.events}
+                        renderItem={item => (
+                          <List.Item
+                            style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                            key={item.id}
+                          >
+                            <List.Item.Meta
+                              avatar={<Avatar style={{ backgroundColor: item.color }}>📅</Avatar>}
+                              title={
+                                <div>
+                                  <Text strong>{item.title}</Text>
+                                  <Tag color="blue" style={{ marginLeft: 8 }}>{item.ticketId}</Tag>
+                                </div>
+                              }
+                              description={
+                                <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                                    📍 {item.date} • {item.time}
+                                  </Text>
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                                    👤 Instructor: {item.instructor}
+                                  </Text>
+                                </Space>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {searchResults.tracks.length > 0 && (
+                    <div style={{ marginBottom: 24 }}>
+                      <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#4285F4' }}>
+                        📚 Learning Tracks ({searchResults.tracks.length})
+                      </Text>
+                      <List
+                        dataSource={searchResults.tracks}
+                        renderItem={item => (
+                          <List.Item
+                            style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                            key={item.id}
+                          >
+                            <List.Item.Meta
+                              avatar={<Avatar style={{ backgroundColor: item.color }}>📚</Avatar>}
+                              title={
+                                <div>
+                                  <Text strong>{item.name}</Text>
+                                  <Tag color={item.status === 'success' ? 'success' : 'processing'} style={{ marginLeft: 8 }}>
+                                    {item.status === 'success' ? 'Completed' : 'In Progress'}
+                                  </Tag>
+                                </div>
+                              }
+                              description={
+                                <div style={{ marginTop: 8 }}>
+                                  <Progress
+                                    percent={item.percent}
+                                    strokeColor={item.color}
+                                    status={item.status === 'success' ? 'success' : 'active'}
+                                    strokeWidth={6}
+                                    size="small"
+                                  />
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4, display: 'block' }}>
+                                    {item.lessons}
+                                  </Text>
+                                </div>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {searchResults.projects.length > 0 && (
+                    <div style={{ marginBottom: 24 }}>
+                      <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#FBBC05' }}>
+                        🚀 Projects ({searchResults.projects.length})
+                      </Text>
+                      <List
+                        dataSource={searchResults.projects}
+                        renderItem={item => (
+                          <List.Item
+                            style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                            key={item.id}
+                            actions={[
+                              <Button
+                                size="small"
+                                type="primary"
+                                onClick={() => {
+                                  handleApplyProject(item);
+                                }}
+                                disabled={appliedProjects.includes(item.id)}
+                              >
+                                {appliedProjects.includes(item.id) ? 'Applied' : 'Apply'}
+                              </Button>
+                            ]}
+                          >
+                            <List.Item.Meta
+                              avatar={<Avatar style={{ backgroundColor: '#FBBC05' }}>🚀</Avatar>}
+                              title={
+                                <div>
+                                  <Text strong>{item.title}</Text>
+                                  <Tag color={item.tagColor} style={{ marginLeft: 8 }}>{item.track}</Tag>
+                                </div>
+                              }
+                              description={
+                                <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                                    {item.description}
+                                  </Text>
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4 }}>
+                                    🔍 Looking for: <span style={{ color: '#34A853' }}>{item.lookingFor}</span>
+                                  </Text>
+                                </Space>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {searchResults.leaderboard.length > 0 && (
+                    <div style={{ marginBottom: 24 }}>
+                      <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#34A853' }}>
+                        🏆 Leaderboard ({searchResults.leaderboard.length})
+                      </Text>
+                      <List
+                        dataSource={searchResults.leaderboard}
+                        renderItem={item => (
+                          <List.Item
+                            style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                            key={item.key}
+                          >
+                            <List.Item.Meta
+                              avatar={
+                                <Avatar
+                                  style={{
+                                    backgroundColor:
+                                      item.rank === 1 ? '#FFD700' :
+                                      item.rank === 2 ? '#C0C0C0' :
+                                      item.rank === 3 ? '#CD7F32' : '#4285F4'
+                                  }}
+                                >
+                                  {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
+                                </Avatar>
+                              }
+                              title={
+                                <div>
+                                  <Text strong>{item.name}</Text>
+                                  <Tag color="geekblue" style={{ marginLeft: 8 }}>{item.role}</Tag>
+                                </div>
+                              }
+                              description={
+                                <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                                  <Text type="secondary" style={{ fontSize: '0.85rem', color: '#34A853' }}>
+                                    ⭐ {item.points} XP
+                                  </Text>
+                                  <Tag color="purple" style={{ marginTop: 4, width: 'fit-content' }}>{item.badge}</Tag>
+                                </Space>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {searchResults.events.length === 0 &&
+                    searchResults.tracks.length === 0 &&
+                    searchResults.projects.length === 0 &&
+                    searchResults.leaderboard.length === 0 && (
+                    <Empty description={<Text style={{ color: '#9aa0a6' }}>No results found for "{searchQuery}"</Text>} style={{ marginTop: 40 }} />
+                  )}
+                </Card>
+              )}
 
               {/* Grid Layout */}
               <Row gutter={[24, 24]}>
@@ -711,6 +949,7 @@ Show this ticket code at entry.
                         </Tooltip>
                       </Space>
                     </div>
+
                   </Card>
                 </Col>
 
@@ -909,242 +1148,6 @@ Show this ticket code at entry.
           </Layout>
         </Layout>
       </Layout>
-
-      {/* Search Results Modal */}
-      <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <SearchOutlined style={{ fontSize: 20, color: '#4285F4' }} />
-            <span>Search Dashboard</span>
-          </div>
-        }
-        open={showSearchModal}
-        onCancel={handleSearchClose}
-        footer={null}
-        width={800}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#14161d', color: '#ffffff' }}
-        style={{ top: 40 }}
-      >
-        <div style={{ marginBottom: 20 }}>
-          <Input 
-            size="large"
-            prefix={<SearchOutlined style={{ color: '#4285F4', fontSize: 18 }} />}
-            placeholder="Type to search events, tracks, projects, leaderboard..."
-            value={searchQuery}
-            onChange={handleSearch}
-            autoFocus
-            style={{ 
-              borderRadius: 12, 
-              backgroundColor: '#1c1e26', 
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#ffffff',
-              fontSize: '1rem',
-              height: 48
-            }}
-          />
-        </div>
-
-        {searchQuery ? (
-          <div>
-            <Text style={{ color: '#9aa0a6', marginBottom: 20, display: 'block' }}>
-              Found <Text strong style={{ color: '#4285F4' }}>
-                {searchResults.events.length + searchResults.tracks.length + searchResults.projects.length + searchResults.leaderboard.length}
-              </Text> results for "<Text strong>{searchQuery}</Text>"
-            </Text>
-
-            {/* Events Results */}
-            {searchResults.events.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#EA4335' }}>
-                  📅 Events ({searchResults.events.length})
-                </Text>
-                <List
-                  dataSource={searchResults.events}
-                  renderItem={item => (
-                    <List.Item
-                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
-                      key={item.id}
-                    >
-                      <List.Item.Meta
-                        avatar={<Avatar style={{ backgroundColor: item.color }}>📅</Avatar>}
-                        title={
-                          <div>
-                            <Text strong>{item.title}</Text>
-                            <Tag color="blue" style={{ marginLeft: 8 }}>{item.ticketId}</Tag>
-                          </div>
-                        }
-                        description={
-                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
-                              📍 {item.date} • {item.time}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
-                              👤 Instructor: {item.instructor}
-                            </Text>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Learning Tracks Results */}
-            {searchResults.tracks.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#4285F4' }}>
-                  📚 Learning Tracks ({searchResults.tracks.length})
-                </Text>
-                <List
-                  dataSource={searchResults.tracks}
-                  renderItem={item => (
-                    <List.Item
-                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
-                      key={item.id}
-                    >
-                      <List.Item.Meta
-                        avatar={<Avatar style={{ backgroundColor: item.color }}>📚</Avatar>}
-                        title={
-                          <div>
-                            <Text strong>{item.name}</Text>
-                            <Tag color={item.status === 'success' ? 'success' : 'processing'} style={{ marginLeft: 8 }}>
-                              {item.status === 'success' ? 'Completed' : 'In Progress'}
-                            </Tag>
-                          </div>
-                        }
-                        description={
-                          <div style={{ marginTop: 8 }}>
-                            <Progress
-                              percent={item.percent}
-                              strokeColor={item.color}
-                              status={item.status === 'success' ? 'success' : 'active'}
-                              strokeWidth={6}
-                              size="small"
-                            />
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4, display: 'block' }}>
-                              {item.lessons}
-                            </Text>
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Projects Results */}
-            {searchResults.projects.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#FBBC05' }}>
-                  🚀 Projects ({searchResults.projects.length})
-                </Text>
-                <List
-                  dataSource={searchResults.projects}
-                  renderItem={item => (
-                    <List.Item
-                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
-                      key={item.id}
-                    >
-                      <List.Item.Meta
-                        avatar={<Avatar style={{ backgroundColor: '#FBBC05' }}>🚀</Avatar>}
-                        title={
-                          <div>
-                            <Text strong>{item.title}</Text>
-                            <Tag color={item.tagColor} style={{ marginLeft: 8 }}>{item.track}</Tag>
-                          </div>
-                        }
-                        description={
-                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
-                              {item.description}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4 }}>
-                              🔍 Looking for: <span style={{ color: '#34A853' }}>{item.lookingFor}</span>
-                            </Text>
-                          </Space>
-                        }
-                      />
-                      <Button
-                        size="small"
-                        type="primary"
-                        onClick={() => {
-                          handleApplyProject(item);
-                          handleSearchClose();
-                        }}
-                        disabled={appliedProjects.includes(item.id)}
-                      >
-                        {appliedProjects.includes(item.id) ? 'Applied' : 'Apply'}
-                      </Button>
-                    </List.Item>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Leaderboard Results */}
-            {searchResults.leaderboard.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#34A853' }}>
-                  🏆 Leaderboard ({searchResults.leaderboard.length})
-                </Text>
-                <List
-                  dataSource={searchResults.leaderboard}
-                  renderItem={item => (
-                    <List.Item
-                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
-                      key={item.key}
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar
-                            style={{
-                              backgroundColor:
-                                item.rank === 1 ? '#FFD700' :
-                                item.rank === 2 ? '#C0C0C0' :
-                                item.rank === 3 ? '#CD7F32' : '#4285F4'
-                            }}
-                          >
-                            {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
-                          </Avatar>
-                        }
-                        title={
-                          <div>
-                            <Text strong>{item.name}</Text>
-                            <Tag color="geekblue" style={{ marginLeft: 8 }}>{item.role}</Tag>
-                          </div>
-                        }
-                        description={
-                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
-                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#34A853' }}>
-                              ⭐ {item.points} XP
-                            </Text>
-                            <Tag color="purple" style={{ marginTop: 4, width: 'fit-content' }}>{item.badge}</Tag>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* No results */}
-            {searchResults.events.length === 0 &&
-              searchResults.tracks.length === 0 &&
-              searchResults.projects.length === 0 &&
-              searchResults.leaderboard.length === 0 && (
-              <Empty
-                description={<Text style={{ color: '#9aa0a6' }}>No results found for "{searchQuery}"</Text>}
-                style={{ marginTop: 40 }}
-              />
-            )}
-          </div>
-        ) : (
-          <Empty description={<Text style={{ color: '#9aa0a6' }}>Start typing to search...</Text>} />
-        )}
-      </Modal>
     </ConfigProvider>
   );
 };
