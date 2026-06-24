@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { 
   Layout, Menu, Card, Avatar, Badge, Progress, Table, List, 
   Button, Row, Col, Input, Space, ConfigProvider, 
-  message, Tooltip, Tag, Typography, theme
+  message, Tooltip, Tag, Typography, theme, Modal, Empty, Divider, Tabs
 } from 'antd';
 import { 
   DashboardOutlined, CalendarOutlined, BookOutlined, 
@@ -198,7 +198,77 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchResults, setSearchResults] = useState({
+    events: [],
+    tracks: [],
+    projects: [],
+    leaderboard: []
+  });
   const fileInputRef = useRef(null);
+
+  // Search function to find items across all dashboard sections
+  const performSearch = (query) => {
+    if (!query.trim()) {
+      setSearchResults({ events: [], tracks: [], projects: [], leaderboard: [] });
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+
+    // Search events
+    const eventResults = events.filter(event =>
+      event.title.toLowerCase().includes(lowerQuery) ||
+      event.instructor.toLowerCase().includes(lowerQuery) ||
+      event.date.toLowerCase().includes(lowerQuery) ||
+      event.ticketId.toLowerCase().includes(lowerQuery)
+    );
+
+    // Search learning tracks
+    const trackResults = learningTracks.filter(track =>
+      track.name.toLowerCase().includes(lowerQuery) ||
+      track.lessons.toLowerCase().includes(lowerQuery)
+    );
+
+    // Search projects
+    const projectResults = projectTeams.filter(project =>
+      project.title.toLowerCase().includes(lowerQuery) ||
+      project.description.toLowerCase().includes(lowerQuery) ||
+      project.track.toLowerCase().includes(lowerQuery) ||
+      project.lookingFor.toLowerCase().includes(lowerQuery)
+    );
+
+    // Search leaderboard
+    const leaderboardResults = leaderboardData.filter(member =>
+      member.name.toLowerCase().includes(lowerQuery) ||
+      member.role.toLowerCase().includes(lowerQuery) ||
+      member.badge.toLowerCase().includes(lowerQuery)
+    );
+
+    setSearchResults({
+      events: eventResults,
+      tracks: trackResults,
+      projects: projectResults,
+      leaderboard: leaderboardResults
+    });
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    performSearch(query);
+  };
+
+  const handleSearchOpen = () => {
+    setShowSearchModal(true);
+  };
+
+  const handleSearchClose = () => {
+    setShowSearchModal(false);
+    setSearchQuery('');
+    setSearchResults({ events: [], tracks: [], projects: [], leaderboard: [] });
+  };
 
   const handleRsvpToggle = (eventId) => {
     setEvents(events.map(ev => {
@@ -373,9 +443,13 @@ Show this ticket code at entry.
             placeholder="Search events, learning modules..." 
             style={{ maxWidth: 360, borderRadius: 10 }}
             className="max-sm:hidden"
-            onPressEnter={(e) => {
-              message.info(`Searching for: "${e.target.value}"`);
-              e.target.value = '';
+            value={searchQuery}
+            onChange={handleSearch}
+            onFocus={handleSearchOpen}
+            onPressEnter={() => {
+              if (searchQuery.trim()) {
+                handleSearchOpen();
+              }
             }}
           />
 
@@ -810,6 +884,223 @@ Show this ticket code at entry.
           </Layout>
         </Layout>
       </Layout>
+
+      {/* Search Results Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <SearchOutlined style={{ fontSize: 20, color: '#4285F4' }} />
+            <span>Search Results</span>
+          </div>
+        }
+        open={showSearchModal}
+        onCancel={handleSearchClose}
+        footer={null}
+        width={800}
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#14161d', color: '#ffffff' }}
+        style={{ top: 20 }}
+      >
+        {searchQuery ? (
+          <div>
+            <Text style={{ color: '#9aa0a6', marginBottom: 20, display: 'block' }}>
+              Found <Text strong style={{ color: '#4285F4' }}>
+                {searchResults.events.length + searchResults.tracks.length + searchResults.projects.length + searchResults.leaderboard.length}
+              </Text> results for "<Text strong>{searchQuery}</Text>"
+            </Text>
+
+            {/* Events Results */}
+            {searchResults.events.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#EA4335' }}>
+                  📅 Events ({searchResults.events.length})
+                </Text>
+                <List
+                  dataSource={searchResults.events}
+                  renderItem={item => (
+                    <List.Item
+                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                      key={item.id}
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar style={{ backgroundColor: item.color }}>📅</Avatar>}
+                        title={
+                          <div>
+                            <Text strong>{item.title}</Text>
+                            <Tag color="blue" style={{ marginLeft: 8 }}>{item.ticketId}</Tag>
+                          </div>
+                        }
+                        description={
+                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                              📍 {item.date} • {item.time}
+                            </Text>
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                              👤 Instructor: {item.instructor}
+                            </Text>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Learning Tracks Results */}
+            {searchResults.tracks.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#4285F4' }}>
+                  📚 Learning Tracks ({searchResults.tracks.length})
+                </Text>
+                <List
+                  dataSource={searchResults.tracks}
+                  renderItem={item => (
+                    <List.Item
+                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                      key={item.id}
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar style={{ backgroundColor: item.color }}>📚</Avatar>}
+                        title={
+                          <div>
+                            <Text strong>{item.name}</Text>
+                            <Tag color={item.status === 'success' ? 'success' : 'processing'} style={{ marginLeft: 8 }}>
+                              {item.status === 'success' ? 'Completed' : 'In Progress'}
+                            </Tag>
+                          </div>
+                        }
+                        description={
+                          <div style={{ marginTop: 8 }}>
+                            <Progress
+                              percent={item.percent}
+                              strokeColor={item.color}
+                              status={item.status === 'success' ? 'success' : 'active'}
+                              strokeWidth={6}
+                              size="small"
+                            />
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4, display: 'block' }}>
+                              {item.lessons}
+                            </Text>
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Projects Results */}
+            {searchResults.projects.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#FBBC05' }}>
+                  🚀 Projects ({searchResults.projects.length})
+                </Text>
+                <List
+                  dataSource={searchResults.projects}
+                  renderItem={item => (
+                    <List.Item
+                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                      key={item.id}
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar style={{ backgroundColor: '#FBBC05' }}>🚀</Avatar>}
+                        title={
+                          <div>
+                            <Text strong>{item.title}</Text>
+                            <Tag color={item.tagColor} style={{ marginLeft: 8 }}>{item.track}</Tag>
+                          </div>
+                        }
+                        description={
+                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6' }}>
+                              {item.description}
+                            </Text>
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#9aa0a6', marginTop: 4 }}>
+                              🔍 Looking for: <span style={{ color: '#34A853' }}>{item.lookingFor}</span>
+                            </Text>
+                          </Space>
+                        }
+                      />
+                      <Button
+                        size="small"
+                        type="primary"
+                        onClick={() => {
+                          handleApplyProject(item);
+                          handleSearchClose();
+                        }}
+                        disabled={appliedProjects.includes(item.id)}
+                      >
+                        {appliedProjects.includes(item.id) ? 'Applied' : 'Apply'}
+                      </Button>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Leaderboard Results */}
+            {searchResults.leaderboard.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 14, color: '#34A853' }}>
+                  🏆 Leaderboard ({searchResults.leaderboard.length})
+                </Text>
+                <List
+                  dataSource={searchResults.leaderboard}
+                  renderItem={item => (
+                    <List.Item
+                      style={{ paddingLeft: 0, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
+                      key={item.key}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar
+                            style={{
+                              backgroundColor:
+                                item.rank === 1 ? '#FFD700' :
+                                item.rank === 2 ? '#C0C0C0' :
+                                item.rank === 3 ? '#CD7F32' : '#4285F4'
+                            }}
+                          >
+                            {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
+                          </Avatar>
+                        }
+                        title={
+                          <div>
+                            <Text strong>{item.name}</Text>
+                            <Tag color="geekblue" style={{ marginLeft: 8 }}>{item.role}</Tag>
+                          </div>
+                        }
+                        description={
+                          <Space direction="vertical" size={0} style={{ marginTop: 8 }}>
+                            <Text type="secondary" style={{ fontSize: '0.85rem', color: '#34A853' }}>
+                              ⭐ {item.points} XP
+                            </Text>
+                            <Tag color="purple" style={{ marginTop: 4, width: 'fit-content' }}>{item.badge}</Tag>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* No results */}
+            {searchResults.events.length === 0 &&
+              searchResults.tracks.length === 0 &&
+              searchResults.projects.length === 0 &&
+              searchResults.leaderboard.length === 0 && (
+              <Empty
+                description={<Text style={{ color: '#9aa0a6' }}>No results found for "{searchQuery}"</Text>}
+                style={{ marginTop: 40 }}
+              />
+            )}
+          </div>
+        ) : (
+          <Empty description={<Text style={{ color: '#9aa0a6' }}>Start typing to search...</Text>} />
+        )}
+      </Modal>
     </ConfigProvider>
   );
 };
