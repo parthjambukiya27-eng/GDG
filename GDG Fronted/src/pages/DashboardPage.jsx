@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Layout, Menu, Card, Avatar, Badge, Progress, Table, List, 
   Button, Row, Col, Input, Space, ConfigProvider, 
@@ -208,6 +208,25 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   });
   const fileInputRef = useRef(null);
 
+  const dynamicLeaderboardData = leaderboardData.map(item => {
+    if (item.key === '3') {
+      return { ...item, name: user?.name || item.name };
+    }
+    return item;
+  });
+
+  // Global key listener for Ctrl+K / Cmd+K to toggle search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearchModal(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Search function to find items across all dashboard sections
   const performSearch = (query) => {
     if (!query.trim()) {
@@ -240,7 +259,7 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
     );
 
     // Search leaderboard
-    const leaderboardResults = leaderboardData.filter(member =>
+    const leaderboardResults = dynamicLeaderboardData.filter(member =>
       member.name.toLowerCase().includes(lowerQuery) ||
       member.role.toLowerCase().includes(lowerQuery) ||
       member.badge.toLowerCase().includes(lowerQuery)
@@ -333,13 +352,6 @@ Show this ticket code at entry.
       reader.readAsDataURL(file);
     }
   };
-
-  const dynamicLeaderboardData = leaderboardData.map(item => {
-    if (item.key === '3') {
-      return { ...item, name: user?.name || item.name };
-    }
-    return item;
-  });
 
   const leaderboardColumns = [
     {
@@ -438,22 +450,35 @@ Show this ticket code at entry.
             </div>
           </Space>
 
-          <Input 
-            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />} 
-            placeholder="Search events, learning modules..." 
-            style={{ maxWidth: 360, borderRadius: 10 }}
+          <div 
+            onClick={handleSearchOpen}
+            style={{ width: '100%', maxWidth: 360, cursor: 'pointer' }}
             className="max-sm:hidden"
-            value={searchQuery}
-            onChange={handleSearch}
-            onFocus={handleSearchOpen}
-            onPressEnter={() => {
-              if (searchQuery.trim()) {
-                handleSearchOpen();
+          >
+            <Input 
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />} 
+              suffix={
+                <Tag color="default" style={{ margin: 0, fontSize: '0.7rem', backgroundColor: 'rgba(255,255,255,0.08)', border: 'none', color: '#9aa0a6' }}>
+                  Ctrl K
+                </Tag>
               }
-            }}
-          />
+              placeholder="Search dashboard..." 
+              style={{ borderRadius: 10, pointerEvents: 'none' }}
+              value={searchQuery}
+              readOnly
+            />
+          </div>
 
           <Space size="large" align="center">
+            {/* Search Icon for Mobile */}
+            <Button
+              type="text"
+              shape="circle"
+              icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
+              onClick={handleSearchOpen}
+              className="sm:hidden"
+            />
+
             <Badge count={2} size="small">
               <Button 
                 type="text" 
@@ -890,7 +915,7 @@ Show this ticket code at entry.
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <SearchOutlined style={{ fontSize: 20, color: '#4285F4' }} />
-            <span>Search Results</span>
+            <span>Search Dashboard</span>
           </div>
         }
         open={showSearchModal}
@@ -898,8 +923,27 @@ Show this ticket code at entry.
         footer={null}
         width={800}
         bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', backgroundColor: '#14161d', color: '#ffffff' }}
-        style={{ top: 20 }}
+        style={{ top: 40 }}
       >
+        <div style={{ marginBottom: 20 }}>
+          <Input 
+            size="large"
+            prefix={<SearchOutlined style={{ color: '#4285F4', fontSize: 18 }} />}
+            placeholder="Type to search events, tracks, projects, leaderboard..."
+            value={searchQuery}
+            onChange={handleSearch}
+            autoFocus
+            style={{ 
+              borderRadius: 12, 
+              backgroundColor: '#1c1e26', 
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: '#ffffff',
+              fontSize: '1rem',
+              height: 48
+            }}
+          />
+        </div>
+
         {searchQuery ? (
           <div>
             <Text style={{ color: '#9aa0a6', marginBottom: 20, display: 'block' }}>
