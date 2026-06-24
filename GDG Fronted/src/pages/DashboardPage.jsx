@@ -295,14 +295,14 @@ Show this ticket code at entry.
         return (
           <Space>
             <Avatar 
-              src={isCurrentUser ? user?.avatarUrl : null}
+              src={(isCurrentUser && user?.avatarUrl) ? user.avatarUrl : undefined}
               style={{ 
                 background: (isCurrentUser && user?.avatarUrl) ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
                 fontWeight: 'bold',
                 border: 'none'
               }}
             >
-              {!isCurrentUser || !user?.avatarUrl ? text.charAt(0) : null}
+              {!(isCurrentUser && user?.avatarUrl) ? text.charAt(0) : null}
             </Avatar>
             <Text style={{ fontWeight: 600 }}>{text}</Text>
           </Space>
@@ -399,7 +399,7 @@ Show this ticket code at entry.
                 className="hover:bg-white/5"
               >
                 <Avatar 
-                  src={user?.avatarUrl} 
+                  src={user?.avatarUrl || undefined} 
                   style={{ 
                     background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                     fontWeight: 'bold',
@@ -498,7 +498,7 @@ Show this ticket code at entry.
                       <div style={{ position: 'relative', flexShrink: 0 }}>
                         <Avatar 
                           size={80} 
-                          src={user?.avatarUrl}
+                          src={user?.avatarUrl || undefined}
                           style={{ 
                             background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                             fontSize: 32, 
