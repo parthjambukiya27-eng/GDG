@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Header = ({ user, onLogout, onOpenLogin, onOpenRegister }) => {
+const Header = ({ user, onLogout, onOpenLogin, onOpenRegister, onOpenDashboard }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -100,6 +100,13 @@ const Header = ({ user, onLogout, onOpenLogin, onOpenRegister }) => {
                   </div>
                 </div>
               )}
+
+              <button 
+                onClick={() => { handleLinkClick(); onOpenDashboard && onOpenDashboard(); }}
+                className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-text-light py-2.5 rounded-xl text-[0.85rem] font-bold cursor-pointer transition-all duration-200 mb-2"
+              >
+                <i className="fa-solid fa-chart-line"></i> Dashboard
+              </button>
 
               <button 
                 onClick={() => { handleLinkClick(); onLogout && onLogout(); }}

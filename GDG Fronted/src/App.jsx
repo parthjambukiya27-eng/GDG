@@ -11,6 +11,7 @@ import ChapterVideo from './components/ChapterVideo';
 import WebCreator from './components/WebCreator';
 import Footer from './components/Footer';
 import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 import AssistantShell from './components/AssistantShell';
 import { initLegacyUI } from './utils/legacy-script';
 
@@ -68,6 +69,8 @@ function App() {
   useEffect(() => {
     if (user && (currentPath === '#/login' || currentPath === '#/register')) {
       navigate('#/');
+    } else if (!user && currentPath === '#/dashboard') {
+      navigate('#/login');
     }
   }, [user, currentPath]);
 
@@ -83,13 +86,16 @@ function App() {
   };
 
   const isAuthRoute = currentPath === '#/login' || currentPath === '#/register';
+  const isDashboardRoute = currentPath === '#/dashboard';
 
   return (
     <>
       <Loader />
       <ThreeDCanvas />
 
-      {isAuthRoute ? (
+      {isDashboardRoute && user ? (
+        <DashboardPage user={user} onLogout={handleLogout} navigate={navigate} />
+      ) : isAuthRoute ? (
         <AuthPage currentPath={currentPath} navigate={navigate} />
       ) : (
         <div className="relative z-10 flex flex-col min-h-screen justify-between px-4 max-w-[1440px] mx-auto w-full max-sm:px-2">
@@ -98,6 +104,7 @@ function App() {
             onLogout={handleLogout} 
             onOpenLogin={() => navigate('#/login')} 
             onOpenRegister={() => navigate('#/register')} 
+            onOpenDashboard={() => navigate('#/dashboard')}
           />
           
           <main className="flex-grow">
