@@ -94,7 +94,15 @@ function App() {
       <ThreeDCanvas />
 
       {isDashboardRoute && user ? (
-        <DashboardPage user={user} onLogout={handleLogout} navigate={navigate} />
+        <DashboardPage 
+          user={user} 
+          onLogout={handleLogout} 
+          onUpdateUser={(updatedUser) => {
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            setUser(updatedUser);
+          }}
+          navigate={navigate} 
+        />
       ) : isAuthRoute ? (
         <AuthPage currentPath={currentPath} navigate={navigate} />
       ) : (

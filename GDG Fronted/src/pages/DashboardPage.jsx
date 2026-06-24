@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Layout, Menu, Card, Avatar, Badge, Progress, Table, List, 
   Button, Row, Col, Input, Space, ConfigProvider, 
@@ -194,10 +194,11 @@ const leaderboardData = [
   }
 ];
 
-const DashboardPage = ({ user, onLogout, navigate }) => {
+const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
+  const fileInputRef = useRef(null);
 
   const handleRsvpToggle = (eventId) => {
     setEvents(events.map(ev => {
@@ -245,6 +246,24 @@ Show this ticket code at entry.
     message.success(`Application sent for "${project.title}"!`);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        message.error("Image size must be smaller than 2MB!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Url = event.target.result;
+        const updatedUser = { ...user, avatarUrl: base64Url };
+        onUpdateUser && onUpdateUser(updatedUser);
+        message.success("Profile picture updated successfully!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const dynamicLeaderboardData = leaderboardData.map(item => {
     if (item.key === '3') {
       return { ...item, name: user?.name || item.name };
@@ -271,14 +290,20 @@ Show this ticket code at entry.
       title: 'Member',
       dataIndex: 'name',
       key: 'name',
-      render: (text, record) => (
-        <Space>
-          <Avatar style={{ backgroundColor: record.rank === 1 ? '#FBBC05' : '#4285F4' }}>
-            {text.charAt(0)}
-          </Avatar>
-          <Text style={{ fontWeight: 600 }}>{text}</Text>
-        </Space>
-      )
+      render: (text, record) => {
+        const isCurrentUser = record.key === '3';
+        return (
+          <Space>
+            <Avatar 
+              src={isCurrentUser ? user?.avatarUrl : null}
+              style={{ backgroundColor: record.rank === 1 ? '#FBBC05' : '#4285F4' }}
+            >
+              {!isCurrentUser || !user?.avatarUrl ? text.charAt(0) : null}
+            </Avatar>
+            <Text style={{ fontWeight: 600 }}>{text}</Text>
+          </Space>
+        );
+      }
     },
     {
       title: 'Track Role',
@@ -369,8 +394,11 @@ Show this ticket code at entry.
                 style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} 
                 className="hover:bg-white/5"
               >
-                <Avatar style={{ backgroundColor: '#4285F4', fontWeight: 'bold' }}>
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                <Avatar 
+                  src={user?.avatarUrl} 
+                  style={{ backgroundColor: '#4285F4', fontWeight: 'bold' }}
+                >
+                  {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
                   <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
@@ -462,6 +490,7 @@ Show this ticket code at entry.
                       <div style={{ position: 'relative', flexShrink: 0 }}>
                         <Avatar 
                           size={80} 
+                          src={user?.avatarUrl}
                           style={{ 
                             backgroundColor: '#4285F4', 
                             fontSize: 32, 
@@ -469,7 +498,7 @@ Show this ticket code at entry.
                             boxShadow: '0 4px 12px rgba(66,133,244,0.3)',
                           }}
                         >
-                          {user?.name?.charAt(0).toUpperCase() || 'U'}
+                          {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
                         </Avatar>
                         <Tooltip title="Change Profile Picture">
                           <Button
@@ -492,9 +521,16 @@ Show this ticket code at entry.
                               justifyContent: 'center',
                               padding: 0
                             }}
-                            onClick={() => message.info('Change profile picture feature coming soon!')}
+                            onClick={() => fileInputRef.current.click()}
                           />
                         </Tooltip>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          onChange={handleFileChange} 
+                          accept="image/*" 
+                          style={{ display: 'none' }} 
+                        />
                       </div>
                       <div style={{ flexGrow: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>

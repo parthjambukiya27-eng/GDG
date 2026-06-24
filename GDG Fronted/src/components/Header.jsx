@@ -69,9 +69,13 @@ const Header = ({ user, onLogout, onOpenLogin, onOpenRegister, onOpenDashboard }
         {user ? (
           <div className="relative group/avatar max-lg:w-full">
             <button className="flex items-center gap-2 bg-white/5 border border-white/10 hover:border-white/20 p-1.5 pr-4 rounded-full cursor-pointer transition-all duration-200 focus:outline-none max-lg:w-full max-lg:justify-start">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4285F4] via-[#EA4335] to-[#FBBC05] flex items-center justify-center text-white font-bold text-sm shadow-md">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover shadow-md" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4285F4] via-[#EA4335] to-[#FBBC05] flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <span className="text-[0.85rem] font-semibold text-text-light">{user.name.split(' ')[0]}</span>
               <i className="fa-solid fa-chevron-down text-white/40 text-[0.7rem] group-hover/avatar:rotate-180 transition-transform duration-300 ml-1 max-lg:hidden"></i>
             </button>
@@ -79,9 +83,13 @@ const Header = ({ user, onLogout, onOpenLogin, onOpenRegister, onOpenDashboard }
             {/* Dropdown menu */}
             <div className="absolute right-0 top-[110%] w-72 bg-[#0c0d12]/96 border border-white/8 backdrop-blur-xl rounded-2xl p-5 shadow-[0_20px_40px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover/avatar:opacity-100 group-hover/avatar:visible hover:opacity-100 hover:visible transition-all duration-300 transform translate-y-2 group-hover/avatar:translate-y-0 z-[1100] text-left max-lg:static max-lg:w-full max-lg:opacity-100 max-lg:visible max-lg:translate-y-0 max-lg:bg-transparent max-lg:border-0 max-lg:p-3 max-lg:shadow-none">
               <div className="flex items-center gap-3 border-b border-white/8 pb-4 mb-4 max-lg:border-0 max-lg:pb-0 max-lg:mb-2">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#4285F4] via-[#EA4335] to-[#FBBC05] flex items-center justify-center text-white font-bold text-lg shadow-[0_0_15px_rgba(66,133,244,0.3)] max-lg:hidden">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover shadow-md max-lg:hidden" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#4285F4] via-[#EA4335] to-[#FBBC05] flex items-center justify-center text-white font-bold text-lg shadow-[0_0_15px_rgba(66,133,244,0.3)] max-lg:hidden">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex flex-col min-w-0">
                   <h4 className="text-[0.95rem] font-bold text-text-light m-0 truncate max-lg:text-[0.88rem]">{user.name}</h4>
                   <span className="text-[0.75rem] text-text-muted truncate">{user.email}</span>
