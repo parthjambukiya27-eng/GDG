@@ -97,9 +97,26 @@ function App() {
         <DashboardPage 
           user={user} 
           onLogout={handleLogout} 
-          onUpdateUser={(updatedUser) => {
+          onUpdateUser={async (updatedUser) => {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
+            try {
+              const token = localStorage.getItem('token');
+              const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+              const response = await fetch(`${API_BASE_URL}/api/auth/avatar`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': token
+                },
+                body: JSON.stringify({ avatarUrl: updatedUser.avatarUrl })
+              });
+              if (!response.ok) {
+                console.error('Failed to sync avatar with database');
+              }
+            } catch (err) {
+              console.error('Network error syncing avatar with database:', err);
+            }
           }}
           navigate={navigate} 
         />
