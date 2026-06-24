@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Hero = ({ onOpenRegister }) => {
+const Hero = ({ user, onOpenRegister }) => {
   return (
     <section className="grid grid-cols-[1.1fr_0.9fr] items-center gap-12 py-16 max-lg:grid-cols-1 max-lg:text-center max-sm:py-8 flex-grow">
       
@@ -34,12 +34,14 @@ const Hero = ({ onOpenRegister }) => {
  
         {/* Call to Actions */}
         <div className="flex flex-wrap gap-4 mb-8 max-lg:justify-center">
-          <button 
-            onClick={onOpenRegister}
-            className="px-6 py-3.5 rounded-xl font-semibold text-[0.95rem] bg-gradient-to-r from-goog-blue to-[#2b6cb0] text-white flex items-center gap-2 hover:shadow-[0_12px_24px_rgba(66,133,244,0.3)] transition-all duration-200 hover:-translate-y-0.5 btn-radar border-0 cursor-pointer"
-          >
-            Join Chapter <i className="fa-solid fa-arrow-right-long"></i>
-          </button>
+          {!user && (
+            <button 
+              onClick={onOpenRegister}
+              className="px-6 py-3.5 rounded-xl font-semibold text-[0.95rem] bg-gradient-to-r from-goog-blue to-[#2b6cb0] text-white flex items-center gap-2 hover:shadow-[0_12px_24px_rgba(66,133,244,0.3)] transition-all duration-200 hover:-translate-y-0.5 btn-radar border-0 cursor-pointer"
+            >
+              Join Chapter <i className="fa-solid fa-arrow-right-long"></i>
+            </button>
+          )}
           <a href="#upcoming-events" className="px-6 py-3.5 rounded-xl font-semibold text-[0.95rem] border border-white/10 hover:border-white/20 bg-white/4 hover:bg-white/8 text-text-light flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5">
             Explore Events
           </a>

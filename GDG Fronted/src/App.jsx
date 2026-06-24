@@ -65,6 +65,12 @@ function App() {
     }
   }, [currentPath]);
 
+  useEffect(() => {
+    if (user && (currentPath === '#/login' || currentPath === '#/register')) {
+      navigate('#/');
+    }
+  }, [user, currentPath]);
+
   const navigate = (hash) => {
     window.location.hash = hash;
   };
@@ -95,7 +101,7 @@ function App() {
           />
           
           <main className="flex-grow">
-            <Hero onOpenRegister={() => navigate('#/register')} />
+            <Hero user={user} onOpenRegister={() => navigate('#/register')} />
             <About />
             <UpcomingEvents />
             <PastEvents />
