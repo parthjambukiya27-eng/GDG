@@ -469,7 +469,7 @@ Show this ticket code at entry.
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </Avatar>
                       <div style={{ flexGrow: 1 }}>
-                        <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                           <div>
                             <Title level={3} style={{ margin: 0, fontWeight: 700 }}>
                               {user?.name || 'Developer Enthusiast'}
