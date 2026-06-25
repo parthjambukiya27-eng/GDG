@@ -7,7 +7,7 @@ import {
 import { 
   DashboardOutlined, CalendarOutlined, BookOutlined, 
   ProjectOutlined, TrophyOutlined, SearchOutlined, 
-  BellOutlined, UserOutlined, LogoutOutlined, HomeOutlined, 
+  UserOutlined, LogoutOutlined, HomeOutlined, 
   CheckCircleOutlined, DeleteOutlined, DownloadOutlined, TeamOutlined, 
   RocketOutlined, StarOutlined, MenuUnfoldOutlined, MenuFoldOutlined,
   VideoCameraOutlined, CameraOutlined
@@ -505,17 +505,6 @@ Show this ticket code at entry.
               icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
               className="sm:hidden"
             />
-
-            <Badge count={2} size="small">
-              <Button 
-                type="text" 
-                shape="circle"
-                icon={<BellOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />} 
-                onClick={() => {
-                  message.info("Club Notifications: 1. SolsticeHack 1.0 finishes soon! 2. Flutter study jam session is scheduled.");
-                }}
-              />
-            </Badge>
 
             {/* Profile icon clicks navigate directly to main site */}
             <Tooltip title="Main Website">
