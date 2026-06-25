@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Loader = () => {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setVisible(false);
+      document.body.classList.remove('loading');
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.body.classList.remove('loading');
+    };
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <div id="pageLoader" className="page-loader fixed inset-0 flex justify-center items-center bg-radial from-gray-900/96 to-slate-950/98 text-white z-[9999] opacity-1 visible" aria-hidden="true">
       <div className="text-center grid place-items-center gap-4.5">

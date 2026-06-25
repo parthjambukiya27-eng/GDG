@@ -49,6 +49,12 @@ function App() {
           window._legacyCleanup = null;
         }
       };
+    } else {
+      // If navigating away from home, run cleanup
+      if (window._legacyCleanup) {
+        window._legacyCleanup();
+        window._legacyCleanup = null;
+      }
     }
   }, [currentPath]);
 
@@ -107,7 +113,7 @@ function App() {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': token
+                  'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ avatarUrl: updatedUser.avatarUrl })
               });

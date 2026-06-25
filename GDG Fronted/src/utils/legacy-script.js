@@ -3,31 +3,38 @@ export const initLegacyUI = () => {
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navLinks = document.getElementById('navLinks');
     
+    const eventListeners = [];
+    
     if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => {
+        const toggleMenu = () => {
             navLinks.classList.toggle('active');
-        });
+        };
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        eventListeners.push(() => mobileMenuBtn.removeEventListener('click', toggleMenu));
     
         // Close menu when a link is clicked
+        const closeMenuOnClick = () => {
+            navLinks.classList.remove('active');
+        };
         navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-            });
+            link.addEventListener('click', closeMenuOnClick);
+            eventListeners.push(() => link.removeEventListener('click', closeMenuOnClick));
         });
     
         // Close menu when buttons are clicked
         navLinks.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-            });
+            button.addEventListener('click', closeMenuOnClick);
+            eventListeners.push(() => button.removeEventListener('click', closeMenuOnClick));
         });
     
         // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
+        const handleOutsideClick = (e) => {
             if (!e.target.closest('.navbar')) {
                 navLinks.classList.remove('active');
             }
-        });
+        };
+        document.addEventListener('click', handleOutsideClick);
+        eventListeners.push(() => document.removeEventListener('click', handleOutsideClick));
     }
     
     const organizerAvatars = document.querySelectorAll('.organizer-card .avatar');
@@ -54,12 +61,15 @@ export const initLegacyUI = () => {
     });
     
     const pageLoader = document.getElementById('pageLoader');
+    let pageLoaderTimer = null;
     const hidePageLoader = () => {
         if (!pageLoader) return;
         pageLoader.classList.add('hidden');
         document.body.classList.remove('loading');
-        window.setTimeout(() => {
-            pageLoader.remove();
+        pageLoaderTimer = window.setTimeout(() => {
+            if (pageLoader && pageLoader.parentNode) {
+                pageLoader.remove();
+            }
         }, 500);
     };
     
@@ -272,17 +282,39 @@ export const initLegacyUI = () => {
         syncWrapperIndicators();
     };
     
-    initializeSectionReveal();
-    initializeViewAllControls();
-    initializeHorizontalSections();
-    
-    window.addEventListener('resize', throttle(() => {
-        wrappers.forEach(refreshWrapper);
-        syncWrapperIndicators();
-    }, 120));
-    
+    let revealObserver;
+    let resizeHandler;
     let lastAutoplayFrame = performance.now();
     let autoplayReqId;
+    
+    const initAll = () => {
+        // Initialize section reveal with observer
+        revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+        
+        sections.forEach(section => revealObserver.observe(section));
+        
+        // Initialize view all controls
+        initializeViewAllControls();
+        
+        // Initialize horizontal sections
+        initializeHorizontalSections();
+        
+        // Resize handler
+        const throttledResize = throttle(() => {
+            wrappers.forEach(refreshWrapper);
+            syncWrapperIndicators();
+        }, 120);
+        
+        window.addEventListener('resize', throttledResize);
+        resizeHandler = throttledResize;
+    };
+    
     const autoplayLoop = (now) => {
         const delta = now - lastAutoplayFrame;
         lastAutoplayFrame = now;
@@ -308,6 +340,7 @@ export const initLegacyUI = () => {
         autoplayReqId = window.requestAnimationFrame(autoplayLoop);
     };
     
+    initAll();
     autoplayReqId = window.requestAnimationFrame(autoplayLoop);
     
     // --- VISITOR ASSISTANT WIDGET ---
@@ -536,6 +569,31 @@ export const initLegacyUI = () => {
 
     // Cleanup function
     return () => {
-        window.cancelAnimationFrame(autoplayReqId);
+        // Cancel animation frame
+        if (autoplayReqId) {
+            window.cancelAnimationFrame(autoplayReqId);
+        }
+        
+        // Disconnect observer
+        if (revealObserver) {
+            revealObserver.disconnect();
+        }
+        
+        // Remove resize listener
+        if (resizeHandler) {
+            window.removeEventListener('resize', resizeHandler);
+        }
+        
+        // Remove all stored event listeners
+        eventListeners.forEach(remove => remove());
+        eventListeners.length = 0;
+        
+        // Clear page loader timeout
+        if (pageLoaderTimer) {
+            window.clearTimeout(pageLoaderTimer);
+        }
+        
+        // Reset autoplay state
+        lastAutoplayFrame = performance.now();
     };
 };

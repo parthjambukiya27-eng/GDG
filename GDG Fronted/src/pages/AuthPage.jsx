@@ -10,11 +10,12 @@ const AuthPage = ({ currentPath, navigate }) => {
   const [showForgot, setShowForgot] = useState(false);
 
   // Form Input States
-  const [loginEmail, setLoginEmail] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
   const [regName, setRegName] = useState('');
+  const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
@@ -31,6 +32,7 @@ const AuthPage = ({ currentPath, navigate }) => {
     setIsSubmitting(false);
     setErrors({});
     setShowForgot(false);
+    setRegUsername('');
   }, [currentPath]);
 
   // Toggle Interest badge
@@ -62,12 +64,21 @@ const AuthPage = ({ currentPath, navigate }) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   };
 
+  const isValidLoginIdentifier = (identifier) => {
+    const trimmed = identifier.trim();
+    if (!trimmed) return false;
+    if (trimmed.includes('@')) {
+      return isValidEmail(trimmed);
+    }
+    return true;
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!isValidEmail(loginEmail)) {
-      newErrors.loginEmail = 'Please enter a valid email address';
+    if (!isValidLoginIdentifier(loginIdentifier)) {
+      newErrors.loginIdentifier = 'Please enter a valid username or email address';
       setErrors(newErrors);
       return;
     }
@@ -76,10 +87,14 @@ const AuthPage = ({ currentPath, navigate }) => {
     setErrors({});
 
     try {
+      const identifierTrimmed = loginIdentifier.trim();
+      const isEmail = identifierTrimmed.includes('@');
+      const requestIdentifier = isEmail ? identifierTrimmed.toLowerCase() : identifierTrimmed;
+
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword })
+        body: JSON.stringify({ identifier: requestIdentifier, password: loginPassword })
       });
       
       const data = await response.json();
@@ -111,6 +126,14 @@ const AuthPage = ({ currentPath, navigate }) => {
       newErrors.regName = 'Name is required';
     }
 
+    if (!regUsername.trim()) {
+      newErrors.regUsername = 'Username is required';
+    } else if (regUsername.trim().length < 3) {
+      newErrors.regUsername = 'Username must be at least 3 characters long';
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(regUsername.trim())) {
+      newErrors.regUsername = 'Username can only contain letters, numbers, underscores, and hyphens';
+    }
+
     if (!isValidEmail(regEmail)) {
       newErrors.regEmail = 'Please enter a valid email address';
     }
@@ -137,6 +160,7 @@ const AuthPage = ({ currentPath, navigate }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: regName,
+          username: regUsername.trim().toLowerCase(),
           email: regEmail.trim().toLowerCase(),
           password: regPassword,
           interests: selectedInterests
@@ -329,23 +353,23 @@ const AuthPage = ({ currentPath, navigate }) => {
                       {errors.form}
                     </div>
                   )}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Email Address</label>
+                      <div className="flex flex-col gap-2">
+                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Username or Email</label>
                     <div className="relative flex items-center">
                       <i className="fa-regular fa-envelope absolute left-4 text-white/35 text-[1rem]"></i>
                       <input 
-                        type="email" 
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="your.email@domain.com" 
+                        type="text" 
+                        value={loginIdentifier}
+                        onChange={(e) => setLoginIdentifier(e.target.value)}
+                        placeholder="your username or email" 
                         className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.loginEmail ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue focus:shadow-[0_0_0_3px_rgba(66,133,244,0.15)]'
+                          errors.loginIdentifier ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue focus:shadow-[0_0_0_3px_rgba(66,133,244,0.15)]'
                         }`} 
                         required 
                       />
                     </div>
-                    {errors.loginEmail && (
-                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.loginEmail}</span>
+                    {errors.loginIdentifier && (
+                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.loginIdentifier}</span>
                     )}
                   </div>
 
@@ -430,6 +454,27 @@ const AuthPage = ({ currentPath, navigate }) => {
                         required 
                       />
                     </div>
+                  </div>
+
+                  {/* Username */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Username</label>
+                    <div className="relative flex items-center">
+                      <i className="fa-regular fa-at absolute left-4 text-white/35 text-[1rem]"></i>
+                      <input 
+                        type="text" 
+                        value={regUsername}
+                        onChange={(e) => setRegUsername(e.target.value)}
+                        placeholder="your_username" 
+                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
+                          errors.regUsername ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
+                        }`}
+                        required 
+                      />
+                    </div>
+                    {errors.regUsername && (
+                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regUsername}</span>
+                    )}
                   </div>
 
                   {/* Email Address */}

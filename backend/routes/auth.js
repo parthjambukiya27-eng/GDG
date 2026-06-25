@@ -15,21 +15,36 @@ const getTokenFromHeader = (req) => {
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, interests } = req.body;
+    const { name, email, username, password, interests } = req.body;
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedUsername = username ? username.trim().toLowerCase() : null;
 
-    // Check if user already exists
-    let user = await User.findOne({ email: normalizedEmail });
-    if (user) {
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    // Check if email already exists
+    let existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email address' });
     }
 
+    // Check if username already exists (if provided)
+    if (normalizedUsername) {
+      existingUser = await User.findOne({ username: normalizedUsername });
+      if (existingUser) {
+        return res.status(400).json({ message: 'This username is already taken' });
+      }
+    }
+
     // Create user instance
-    user = new User({
+    const user = new User({
       name,
       email: normalizedEmail,
+      username: normalizedUsername,
       password,
-      interests
+      interests: interests || []
     });
 
     // Hash password
@@ -44,7 +59,8 @@ router.post('/register', async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        username: user.username
       }
     };
 
@@ -60,6 +76,7 @@ router.post('/register', async (req, res) => {
             id: user.id,
             name: user.name,
             email: user.email,
+            username: user.username,
             interests: user.interests,
             avatarUrl: user.avatarUrl
           }
@@ -77,11 +94,28 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const normalizedEmail = email.trim().toLowerCase();
+    const { identifier, password, email } = req.body;
+    
+    // Support both old (email) and new (identifier) formats
+    const loginIdentifier = identifier || email;
 
-    // Find User
-    let user = await User.findOne({ email: normalizedEmail });
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ message: 'Email/username and password are required' });
+    }
+
+    const normalizedIdentifier = loginIdentifier.trim().toLowerCase();
+
+    // Find user by email or username
+    let user = null;
+    
+    if (normalizedIdentifier.includes('@')) {
+      // It's an email
+      user = await User.findOne({ email: normalizedIdentifier });
+    } else {
+      // It's a username
+      user = await User.findOne({ username: normalizedIdentifier });
+    }
+
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -97,7 +131,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        username: user.username
       }
     };
 
@@ -113,6 +148,7 @@ router.post('/login', async (req, res) => {
             id: user.id,
             name: user.name,
             email: user.email,
+            username: user.username,
             interests: user.interests,
             avatarUrl: user.avatarUrl
           }
