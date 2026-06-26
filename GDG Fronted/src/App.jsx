@@ -12,6 +12,7 @@ import WebCreator from './components/WebCreator';
 import Footer from './components/Footer';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import CoordinatorDashboardPage from './pages/CoordinatorDashboardPage';
 import AssistantShell from './components/AssistantShell';
 import { initLegacyUI } from './utils/legacy-script';
 
@@ -58,6 +59,11 @@ function App() {
     }
   }, [currentPath]);
 
+  const syncUser = (updatedUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -74,9 +80,13 @@ function App() {
 
   useEffect(() => {
     if (user && (currentPath === '#/login' || currentPath === '#/register')) {
-      navigate('#/');
+      navigate(user.role === 'coordinator' ? '#/coordinator-dashboard' : '#/');
     } else if (!user && currentPath === '#/dashboard') {
       navigate('#/login');
+    } else if (user && currentPath === '#/dashboard' && user.role === 'coordinator') {
+      navigate('#/coordinator-dashboard');
+    } else if (user && currentPath === '#/coordinator-dashboard' && user.role !== 'coordinator') {
+      navigate('#/dashboard');
     }
   }, [user, currentPath]);
 
@@ -93,35 +103,41 @@ function App() {
 
   const isAuthRoute = currentPath === '#/login' || currentPath === '#/register';
   const isDashboardRoute = currentPath === '#/dashboard';
+  const isCoordinatorDashboardRoute = currentPath === '#/coordinator-dashboard';
 
   return (
     <>
       <Loader />
       <ThreeDCanvas />
 
-      {isDashboardRoute && user ? (
+      {isCoordinatorDashboardRoute && user?.role === 'coordinator' ? (
+        <CoordinatorDashboardPage user={user} onLogout={handleLogout} onUserUpdate={syncUser} navigate={navigate} />
+      ) : isDashboardRoute && user ? (
         <DashboardPage 
           user={user} 
           onLogout={handleLogout} 
           onUpdateUser={async (updatedUser) => {
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            setUser(updatedUser);
+            syncUser(updatedUser);
             try {
               const token = localStorage.getItem('token');
               const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-              const response = await fetch(`${API_BASE_URL}/api/auth/avatar`, {
+              const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ avatarUrl: updatedUser.avatarUrl })
+                body: JSON.stringify({
+                  fullName: updatedUser.fullName || updatedUser.name,
+                  profilePhotoUrl: updatedUser.profilePhotoUrl || updatedUser.avatarUrl,
+                  bio: updatedUser.bio || ''
+                })
               });
               if (!response.ok) {
-                console.error('Failed to sync avatar with database');
+                console.error('Failed to sync profile with database');
               }
             } catch (err) {
-              console.error('Network error syncing avatar with database:', err);
+              console.error('Network error syncing profile with database:', err);
             }
           }}
           navigate={navigate} 

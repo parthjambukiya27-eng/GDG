@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const app = express();
 
+const User = require('./models/User');
+
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -16,7 +18,25 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Database Connection
 const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/gdg-iitbhilai';
 mongoose.connect(mongoURI)
-  .then(() => console.log('Successfully connected to MongoDB database!'))
+  .then(async () => {
+    console.log('Successfully connected to MongoDB database!');
+    const existingCoordinator = await User.findOne({ email: 'krish@example.com' });
+    if (!existingCoordinator) {
+      const bcrypt = require('bcryptjs');
+      const coordinator = new User({
+        name: 'Krish',
+        fullName: 'Krish Shiyani',
+        username: 'krish',
+        email: 'krish@example.com',
+        password: await bcrypt.hash('Krish@123', 10),
+        role: 'coordinator',
+        profilePhotoUrl: 'https://ui-avatars.com/api/?name=Krish+Shiyani&background=4285F4&color=ffffff&rounded=true',
+        bio: 'Coordinator for the GDG campus community.'
+      });
+      await coordinator.save();
+      console.log('Seeded coordinator account for Krish.');
+    }
+  })
   .catch(err => {
     console.error('MongoDB database connection error:', err.message);
   });

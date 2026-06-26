@@ -210,6 +210,8 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef(null);
 
+  const isCoordinator = user?.role === 'coordinator';
+
   const dynamicLeaderboardData = leaderboardData.map(item => {
     if (item.key === '3') {
       return { ...item, name: user?.name || item.name };
@@ -566,7 +568,7 @@ Show this ticket code at entry.
                 { key: 'tracks', icon: <BookOutlined />, label: 'Learning Tracks' },
                 { key: 'projects', icon: <ProjectOutlined />, label: 'Project Finder' },
                 { key: 'leaderboard', icon: <TrophyOutlined />, label: 'Leaderboard' },
-                { key: 'delete', icon: <DeleteOutlined />, label: 'Delete Account', danger: true },
+                ...(isCoordinator ? [] : [{ key: 'delete', icon: <DeleteOutlined />, label: 'Delete Account', danger: true }]),
                 { key: 'logout', icon: <LogoutOutlined />, label: 'Sign Out', danger: true }
               ]}
               onClick={({ key }) => {
@@ -574,6 +576,8 @@ Show this ticket code at entry.
                   onLogout();
                 } else if (key === 'delete') {
                   handleDeleteAccount();
+                } else if (key === 'coordinator-dashboard') {
+                  navigate('#/coordinator-dashboard');
                 } else {
                   const element = document.getElementById(key);
                   if (element) {

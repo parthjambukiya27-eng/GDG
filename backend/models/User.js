@@ -6,6 +6,10 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please provide your full name'],
     trim: true
   },
+  fullName: {
+    type: String,
+    trim: true
+  },
   username: {
     type: String,
     unique: true,
@@ -26,6 +30,19 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8
+  },
+  role: {
+    type: String,
+    enum: ['coordinator', 'coremember', 'mentor', 'member', 'user'],
+    default: 'user'
+  },
+  profilePhotoUrl: {
+    type: String,
+    default: ''
+  },
+  bio: {
+    type: String,
+    default: ''
   },
   interests: {
     type: [String],

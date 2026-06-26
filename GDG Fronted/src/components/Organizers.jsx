@@ -1,57 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+const defaultProfileCard = {
+  name: 'Organization & Web Creator',
+  role: 'Community Growth • Platform Engineering',
+  initials: 'GD',
+  image: 'https://ui-avatars.com/api/?name=GDG+Web+Team&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
+  bio: 'A beautifully designed fallback card appears here until live leadership profiles are available.'
+};
 
 const Organizers = () => {
-  const team = [
-    {
-      name: 'Saurav Gupta',
-      role: 'GDGoC Organizer',
-      initials: 'SG',
-      image: 'https://ui-avatars.com/api/?name=Saurav+Gupta&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Rohit Raghuvanshi',
-      role: 'Core Member',
-      initials: 'RR',
-      image: 'https://ui-avatars.com/api/?name=Rohit+Raghuvanshi&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Umap+Utkarsh+Sharad',
-      nameDisplay: 'Umap Utkarsh Sharad',
-      role: 'Core Member',
-      initials: 'US',
-      image: 'https://ui-avatars.com/api/?name=Umap+Utkarsh+Sharad&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Siddhi Singh',
-      role: 'Core Member',
-      initials: 'SS',
-      image: 'https://ui-avatars.com/api/?name=Siddhi+Singh&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Swarit Dixit',
-      role: 'Core Member',
-      initials: 'SD',
-      image: 'https://ui-avatars.com/api/?name=Swarit+Dixit&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Bodike Chaithali',
-      role: 'Core Member',
-      initials: 'BC',
-      image: 'https://ui-avatars.com/api/?name=Bodike+Chaithali&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Nitin Mane',
-      role: 'Mentor, Intel',
-      initials: 'NM',
-      image: 'https://ui-avatars.com/api/?name=Nitin+Mane&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
-    },
-    {
-      name: 'Ashish Kumar Dash',
-      role: 'Core Member',
-      initials: 'AD',
-      image: 'https://ui-avatars.com/api/?name=Ashish+Kumar+Dash&background=1D2432&color=ffffff&rounded=true&size=256&bold=true'
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadTeam = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/featured-team`);
+      const data = await response.json();
+      if (response.ok && Array.isArray(data.users)) {
+        setTeam(data.users);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    loadTeam();
+
+    const handleTeamRefresh = () => {
+      loadTeam();
+    };
+
+    window.addEventListener('teamProfilesChanged', handleTeamRefresh);
+    return () => window.removeEventListener('teamProfilesChanged', handleTeamRefresh);
+  }, []);
+
+  const visibleTeam = team.length > 0 ? team : [defaultProfileCard];
 
   const themes = [
     {
@@ -110,7 +98,7 @@ const Organizers = () => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-4 gap-6 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-2 max-[480px]:grid-cols-1 w-full text-center">
-        {team.map((member, idx) => {
+        {visibleTeam.map((member, idx) => {
           const theme = themes[idx % 4];
           return (
             <article 
@@ -143,9 +131,9 @@ const Organizers = () => {
 
               {/* Avatar Frame */}
               <div className={`w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full overflow-hidden border-2 border-white/8 ${theme.borderAvatar} transition-all duration-300 shadow-md mb-4 flex-none z-10 mt-3`}>
-                <img 
-                  src={member.image} 
-                  alt={member.nameDisplay || member.name} 
+                <img
+                  src={member.profilePhotoUrl || member.avatarUrl || member.image}
+                  alt={member.nameDisplay || member.fullName || member.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -153,11 +141,12 @@ const Organizers = () => {
               {/* Member Details */}
               <div className="z-10">
                 <h3 className={`m-0 mb-1 text-text-light font-display text-[1.08rem] font-extrabold ${theme.textHover} transition-colors duration-200 max-sm:text-[0.95rem]`}>
-                  {member.nameDisplay || member.name}
+                  {member.nameDisplay || member.fullName || member.name}
                 </h3>
                 <p className="text-text-muted text-[0.82rem] m-0 font-mono tracking-wide max-sm:text-[0.72rem]">
-                  {member.role}
+                  {member.role || member.title || 'Community Leader'}
                 </p>
+                {member.bio ? <p className="mt-2 text-[0.72rem] text-text-muted">{member.bio}</p> : null}
               </div>
 
               {/* Expanding Bottom Accent Line */}
