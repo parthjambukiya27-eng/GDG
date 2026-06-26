@@ -448,12 +448,13 @@ Show this ticket code at entry.
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between', 
-          padding: '0 24px', 
+          flexWrap: 'wrap',
+          gap: 12,
+          padding: '10px 18px', 
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           background: '#14161d'
         }}>
-          
           <Space size="middle">
             <Button
               type="text"
@@ -474,7 +475,7 @@ Show this ticket code at entry.
             </div>
           </Space>
 
-<div style={{ width: '100%', maxWidth: 460 }} className="max-sm:hidden">
+          <div style={{ width: '100%', maxWidth: 460 }}>
             <Input
               size="large"
               prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
@@ -546,10 +547,12 @@ Show this ticket code at entry.
             collapsible
             collapsed={collapsed}
             onCollapse={(value) => setCollapsed(value)}
+            onBreakpoint={(broken) => setCollapsed(broken)}
             style={{
               background: '#14161d',
               borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '2px 0 8px rgba(0,0,0,0.15)'
+              boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+              minHeight: '100vh'
             }}
             width={240}
           >

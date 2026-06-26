@@ -64,10 +64,10 @@ const WebCreator = () => {
       </div>
 
       {/* Interactive Panel Grid */}
-      <div className="grid grid-cols-[1.5fr_1fr] gap-8 items-stretch max-lg:grid-cols-1 w-full text-left">
+      <div className="grid grid-cols-[1.5fr_1fr] gap-8 items-stretch max-lg:grid-cols-1 max-sm:gap-6 w-full text-left">
         
         {/* Left Column: Active Profile Card Viewer */}
-        <div className="relative bg-[#14161d] border border-white/8 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden transition-all duration-300 shadow-2xl min-h-[300px]">
+        <div className="relative bg-[#14161d] border border-white/8 rounded-3xl p-8 max-sm:p-6 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden transition-all duration-300 shadow-2xl min-h-[300px] max-sm:min-h-auto">
           {/* Radial glow backdrop */}
           <div className={`absolute inset-0 ${activeDev.glow} -z-1`}></div>
 
