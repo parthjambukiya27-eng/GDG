@@ -261,7 +261,14 @@ router.get('/featured-team', async (req, res) => {
 // @access  Public
 router.get('/users/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const { id } = req.params;
+
+    // Validate that id is a valid MongoDB ObjectId
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const user = await User.findById(id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

@@ -43,18 +43,29 @@ const PublicProfilePage = ({ userId, navigate }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        if (!userId) {
+          console.warn('No userId provided to PublicProfilePage');
+          message.error('No user ID provided');
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
-        // Get the userId from the route params or from the profile fetch
+        console.log(`Fetching profile for userId: ${userId}`);
         const response = await fetch(`${API_BASE_URL}/api/auth/users/${userId}`);
         const data = await response.json();
+        
+        console.log(`Response status: ${response.status}, Data:`, data);
+        
         if (response.ok) {
           setProfile(data.user);
         } else {
-          message.error('Profile not found');
+          console.error('Error from API:', data.message);
+          message.error(data.message || 'Profile not found');
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
-        message.error('Failed to load profile');
+        message.error('Failed to load profile: ' + error.message);
       } finally {
         setLoading(false);
       }
