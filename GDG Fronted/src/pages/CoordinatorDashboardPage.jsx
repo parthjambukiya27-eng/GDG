@@ -296,20 +296,54 @@ Show this ticket code at entry.
     message.success(`Application sent for "${project.title}"!`);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        message.error('Image size must be smaller than 2MB!');
-        return;
-      }
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      message.error('Image size must be smaller than 2MB!');
+      return;
+    }
+
+    try {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const base64Url = event.target?.result;
-        onUserUpdate?.({ ...user, avatarUrl: base64Url });
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            fullName: user?.fullName || user?.name,
+            profilePhotoUrl: base64Url,
+            bio: user?.bio || ''
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Unable to update profile picture');
+
+        const updatedUser = {
+          ...user,
+          name: data.user?.fullName || data.user?.name || user?.name,
+          fullName: data.user?.fullName || data.user?.name || user?.fullName || user?.name,
+          avatarUrl: data.user?.avatarUrl || data.user?.profilePhotoUrl || base64Url,
+          profilePhotoUrl: data.user?.profilePhotoUrl || data.user?.avatarUrl || base64Url,
+          bio: data.user?.bio || user?.bio || ''
+        };
+
+        onUserUpdate?.(updatedUser);
+        window.dispatchEvent(new Event('teamProfilesChanged'));
         message.success('Profile picture updated successfully!');
       };
+
       reader.readAsDataURL(file);
+    } catch (error) {
+      message.error(error.message || 'Unable to update profile picture');
     }
   };
 

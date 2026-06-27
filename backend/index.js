@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
@@ -20,9 +21,15 @@ const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/gdg-iitbhil
 mongoose.connect(mongoURI)
   .then(async () => {
     console.log('Successfully connected to MongoDB database!');
-    const existingCoordinator = await User.findOne({ email: 'krish@example.com' });
+
+    const existingCoordinator = await User.findOne({
+      $or: [
+        { email: 'krish@example.com' },
+        { username: 'krish' }
+      ]
+    });
+
     if (!existingCoordinator) {
-      const bcrypt = require('bcryptjs');
       const coordinator = new User({
         name: 'Krish',
         fullName: 'Krish Shiyani',
@@ -35,6 +42,8 @@ mongoose.connect(mongoURI)
       });
       await coordinator.save();
       console.log('Seeded coordinator account for Krish.');
+    } else {
+      console.log('Coordinator account already exists; skipping seed.');
     }
   })
   .catch(err => {

@@ -39,7 +39,27 @@ const Organizers = () => {
     return () => window.removeEventListener('teamProfilesChanged', handleTeamRefresh);
   }, []);
 
-  const visibleTeam = team.length > 0 ? team : [defaultProfileCard];
+  const roleOrder = ['coordinator', 'mentor', 'coremember'];
+
+  const formatRoleLabel = (role) => {
+    if (!role) return 'Community Leader';
+    const roleMap = {
+      coordinator: 'Coordinator',
+      mentor: 'Mentor',
+      coremember: 'Core Member'
+    };
+    return roleMap[role] || role;
+  };
+
+  const visibleTeam = (team.length > 0 ? team : [defaultProfileCard]).map((member) => ({
+    ...member,
+    roleLabel: formatRoleLabel(member.role || member.title)
+  })).sort((a, b) => {
+    if (team.length === 0) return 0;
+    const priorityA = roleOrder.indexOf(a.role) === -1 ? roleOrder.length : roleOrder.indexOf(a.role);
+    const priorityB = roleOrder.indexOf(b.role) === -1 ? roleOrder.length : roleOrder.indexOf(b.role);
+    return priorityA - priorityB;
+  }).slice(0, team.length > 0 ? 3 : 1);
 
   const themes = [
     {
@@ -144,7 +164,7 @@ const Organizers = () => {
                   {member.nameDisplay || member.fullName || member.name}
                 </h3>
                 <p className="text-text-muted text-[0.82rem] m-0 font-mono tracking-wide max-sm:text-[0.72rem]">
-                  {member.role || member.title || 'Community Leader'}
+                  {member.roleLabel || member.role || member.title || 'Community Leader'}
                 </p>
                 {member.bio ? <p className="mt-2 text-[0.72rem] text-text-muted">{member.bio}</p> : null}
               </div>

@@ -222,11 +222,17 @@ router.put('/users/:id/role', async (req, res) => {
 // @access  Public
 router.get('/featured-team', async (req, res) => {
   try {
-    const users = await User.find({ role: { $in: ['coordinator', 'coremember', 'mentor'] } })
+    const featuredRoles = ['coordinator', 'mentor', 'coremember'];
+    const users = await User.find({ role: { $in: featuredRoles } })
       .select('-password')
       .sort({ createdAt: -1 });
 
-    const formattedUsers = users.map((user) => ({
+    const selectedUsers = featuredRoles.flatMap((role) => {
+      const roleUsers = users.filter((user) => user.role === role);
+      return roleUsers.length > 0 ? [roleUsers[0]] : [];
+    });
+
+    const formattedUsers = selectedUsers.map((user) => ({
       _id: user._id,
       name: user.name,
       fullName: user.fullName || user.name,
