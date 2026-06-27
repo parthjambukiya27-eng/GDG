@@ -572,12 +572,14 @@ Show this ticket code at entry.
                 { key: 'tracks', icon: <BookOutlined />, label: 'Learning Tracks' },
                 { key: 'projects', icon: <ProjectOutlined />, label: 'Project Finder' },
                 { key: 'leaderboard', icon: <TrophyOutlined />, label: 'Leaderboard' },
-                ...(isCoordinator ? [] : [{ key: 'delete', icon: <DeleteOutlined />, label: 'Delete Account', danger: true }]),
+                { key: 'settings', icon: <DeleteOutlined />, label: 'Settings' },
                 { key: 'logout', icon: <LogoutOutlined />, label: 'Sign Out', danger: true }
               ]}
               onClick={({ key }) => {
                 if (key === 'logout') {
                   onLogout();
+                } else if (key === 'settings') {
+                  navigate('#/settings');
                 } else if (key === 'delete') {
                   handleDeleteAccount();
                 } else if (key === 'coordinator-dashboard') {

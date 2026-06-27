@@ -53,19 +53,39 @@ const Organizers = () => {
 
   const hasTeamData = Array.isArray(team) && team.length > 0;
 
-  const visibleTeam = (hasTeamData ? team : [defaultProfileCard]).map((member) => ({
-    ...member,
-    roleLabel: formatRoleLabel(member.role || member.title)
-  })).sort((a, b) => {
-    if (!hasTeamData) return 0;
-    const priorityA = roleOrder.indexOf(a.role) === -1 ? roleOrder.length : roleOrder.indexOf(a.role);
-    const priorityB = roleOrder.indexOf(b.role) === -1 ? roleOrder.length : roleOrder.indexOf(b.role);
-    if (priorityA !== priorityB) return priorityA - priorityB;
+  const visibleTeam = (() => {
+    if (!hasTeamData) {
+      return [{
+        ...defaultProfileCard,
+        roleLabel: formatRoleLabel(defaultProfileCard.role)
+      }];
+    }
 
-    const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
-    const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
-    return nameA.localeCompare(nameB);
-  }).slice(0, hasTeamData ? 4 : 1);
+    const orderedMembers = [];
+    const teamMembers = team
+      .map((member) => ({
+        ...member,
+        roleLabel: formatRoleLabel(member.role || member.title)
+      }))
+      .sort((a, b) => {
+        const priorityA = roleOrder.indexOf(a.role) === -1 ? roleOrder.length : roleOrder.indexOf(a.role);
+        const priorityB = roleOrder.indexOf(b.role) === -1 ? roleOrder.length : roleOrder.indexOf(b.role);
+        if (priorityA !== priorityB) return priorityA - priorityB;
+
+        const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
+        const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+    roleOrder.forEach((role) => {
+      const match = teamMembers.find((member) => member.role === role);
+      if (match) {
+        orderedMembers.push(match);
+      }
+    });
+
+    return orderedMembers.slice(0, 3);
+  })();
 
   const themes = [
     {
@@ -126,10 +146,16 @@ const Organizers = () => {
       <div className="grid grid-cols-4 gap-6 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-2 max-[480px]:grid-cols-1 w-full text-center">
         {visibleTeam.map((member, idx) => {
           const theme = themes[idx % 4];
+          const handleCardClick = () => {
+            if (member._id) {
+              window.location.hash = `#/profile/${member._id}`;
+            }
+          };
           return (
             <article 
               key={idx} 
-              className={`organizer-card group bg-[#111319] border border-white/6 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-2 ${theme.borderHover} ${theme.shadowHover} relative overflow-hidden flex flex-col items-center justify-center min-h-[230px] max-sm:p-5 max-sm:min-h-[190px]`}
+              className={`organizer-card group bg-[#111319] border border-white/6 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-2 ${theme.borderHover} ${theme.shadowHover} relative overflow-hidden flex flex-col items-center justify-center min-h-[230px] max-sm:p-5 max-sm:min-h-[190px] ${member._id ? 'cursor-pointer' : ''}`}
+              onClick={handleCardClick}
             >
               {/* Google Brand Color Top Bar */}
               <div className="absolute top-0 left-0 w-full h-[3px] flex">

@@ -13,6 +13,9 @@ import Footer from './components/Footer';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import CoordinatorDashboardPage from './pages/CoordinatorDashboardPage';
+import SettingsPage from './pages/SettingsPage';
+import CoordinatorSettingsPage from './pages/CoordinatorSettingsPage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import AssistantShell from './components/AssistantShell';
 import { initLegacyUI } from './utils/legacy-script';
 
@@ -116,13 +119,23 @@ function App() {
   const isAuthRoute = currentPath === '#/login' || currentPath === '#/register';
   const isDashboardRoute = currentPath === '#/dashboard';
   const isCoordinatorDashboardRoute = currentPath === '#/coordinator-dashboard';
+  const isSettingsRoute = currentPath === '#/settings';
+  const isCoordinatorSettingsRoute = currentPath === '#/coordinator-settings';
+  const isProfileRoute = currentPath.startsWith('#/profile/');
+  const profileUserId = isProfileRoute ? currentPath.split('/')[2] : null;
 
   return (
     <>
       <Loader />
       <ThreeDCanvas />
 
-      {isCoordinatorDashboardRoute && user?.role === 'coordinator' ? (
+      {isProfileRoute && profileUserId ? (
+        <PublicProfilePage userId={profileUserId} navigate={navigate} />
+      ) : isCoordinatorSettingsRoute && user?.role === 'coordinator' ? (
+        <CoordinatorSettingsPage user={user} onLogout={handleLogout} onUserUpdate={syncUser} navigate={navigate} />
+      ) : isSettingsRoute && user ? (
+        <SettingsPage user={user} onLogout={handleLogout} onUserUpdate={syncUser} navigate={navigate} />
+      ) : isCoordinatorDashboardRoute && user?.role === 'coordinator' ? (
         <CoordinatorDashboardPage user={user} onLogout={handleLogout} onUserUpdate={syncUser} navigate={navigate} />
       ) : isDashboardRoute && user ? (
         <DashboardPage 

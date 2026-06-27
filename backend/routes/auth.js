@@ -256,6 +256,37 @@ router.get('/featured-team', async (req, res) => {
   }
 });
 
+// @route   GET api/auth/users/:id
+// @desc    Get a specific user by ID (public profile)
+// @access  Public
+router.get('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        fullName: user.fullName || user.name,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profilePhotoUrl: user.profilePhotoUrl || user.avatarUrl,
+        bio: user.bio,
+        interests: user.interests,
+        avatarUrl: user.avatarUrl || user.profilePhotoUrl,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Get User Error:', error.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 // @route   PUT api/auth/users/:id/transfer-coordinator
 // @desc    Transfer coordinator role to a selected member and demote the current coordinator
 // @access  Private

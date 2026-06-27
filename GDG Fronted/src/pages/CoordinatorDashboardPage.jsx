@@ -418,6 +418,8 @@ Show this ticket code at entry.
   const handleMenuClick = ({ key }) => {
     if (key === 'logout') {
       onLogout?.();
+    } else if (key === 'settings') {
+      navigate('#/coordinator-settings');
     } else if (key === 'delete') {
       Modal.confirm({
         title: 'Delete your account? This cannot be undone.',
@@ -602,7 +604,7 @@ Show this ticket code at entry.
                 { key: 'projects', icon: <ProjectOutlined />, label: 'Project Finder' },
                 { key: 'leaderboard', icon: <TrophyOutlined />, label: 'Leaderboard' },
                 { key: 'roles', icon: <CrownOutlined />, label: 'Role Management' },
-                ...(isCoordinator ? [] : [{ key: 'delete', icon: <DeleteOutlined />, label: 'Delete Account', danger: true }]),
+                { key: 'settings', icon: <DeleteOutlined />, label: 'Settings' },
                 { key: 'logout', icon: <LogoutOutlined />, label: 'Sign Out', danger: true }
               ]}
               onClick={handleMenuClick}
@@ -685,15 +687,9 @@ Show this ticket code at entry.
                 <Col xs={24} lg={14}>
                   <Card id="dashboard" bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', height: '100%' }}>
                     <div style={{ display: 'flex', gap: 20, alignItems: 'start' }} className="max-sm:flex-col text-left">
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
-                        <Avatar size={80} src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 32, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none' }}>
-                          {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
-                        </Avatar>
-                        <Tooltip title="Change Profile Picture">
-                          <Button type="primary" shape="circle" size="small" icon={<CameraOutlined style={{ fontSize: 12 }} />} style={{ position: 'absolute', bottom: 0, right: 0, border: '2px solid #14161d', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', backgroundColor: '#4285F4', width: 24, height: 24, minWidth: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} onClick={() => fileInputRef.current.click()} />
-                        </Tooltip>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
-                      </div>
+                      <Avatar size={80} src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 32, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none', flexShrink: 0 }}>
+                        {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                      </Avatar>
                       <div style={{ flexGrow: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                           <div>
@@ -704,8 +700,8 @@ Show this ticket code at entry.
                         </div>
                         <Paragraph style={{ marginTop: 12, color: '#9aa0a6', fontSize: '0.9rem' }}>You are currently overseeing the GDG chapter activity, assigning roles, and keeping the community moving forward.</Paragraph>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                          <Button type="primary" onClick={() => setIsTransferModalOpen(true)}>Transfer Coordinator</Button>
                           <Button onClick={() => navigate('#/')}>Go to Home</Button>
+                          <Button onClick={() => navigate('#/coordinator-settings')}>Settings</Button>
                           <Button danger onClick={onLogout}>Sign Out</Button>
                         </div>
                       </div>
