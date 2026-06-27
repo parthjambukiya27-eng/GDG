@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const defaultProfileCard = {
-  name: 'Organization & Web Creator',
-  role: 'Community Growth • Platform Engineering',
+  name: 'Leadership profile pending',
+  role: 'Community Lead',
   initials: 'GD',
-  image: 'https://ui-avatars.com/api/?name=GDG+Web+Team&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
-  bio: 'A beautifully designed fallback card appears here until live leadership profiles are available.'
+  image: 'https://ui-avatars.com/api/?name=GDG+Team&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
+  bio: 'A featured profile will appear here once a leadership member is added.'
 };
 
 const Organizers = () => {
@@ -51,15 +51,21 @@ const Organizers = () => {
     return roleMap[role] || role;
   };
 
-  const visibleTeam = (team.length > 0 ? team : [defaultProfileCard]).map((member) => ({
+  const hasTeamData = Array.isArray(team) && team.length > 0;
+
+  const visibleTeam = (hasTeamData ? team : [defaultProfileCard]).map((member) => ({
     ...member,
     roleLabel: formatRoleLabel(member.role || member.title)
   })).sort((a, b) => {
-    if (team.length === 0) return 0;
+    if (!hasTeamData) return 0;
     const priorityA = roleOrder.indexOf(a.role) === -1 ? roleOrder.length : roleOrder.indexOf(a.role);
     const priorityB = roleOrder.indexOf(b.role) === -1 ? roleOrder.length : roleOrder.indexOf(b.role);
-    return priorityA - priorityB;
-  }).slice(0, team.length > 0 ? 3 : 1);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+
+    const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
+    const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
+    return nameA.localeCompare(nameB);
+  }).slice(0, hasTeamData ? 3 : 1);
 
   const themes = [
     {
@@ -140,14 +146,6 @@ const Organizers = () => {
               <span className="absolute -right-2 -bottom-6 text-[8rem] font-black text-white/[0.015] group-hover:text-white/[0.045] select-none pointer-events-none transition-all duration-300 font-display z-0 uppercase">
                 {member.initials}
               </span>
-
-              {/* Access Pass Info */}
-              <div className="absolute top-3.5 left-4 flex justify-between w-[calc(100%-32px)] items-center">
-                <span className="text-[0.62rem] text-text-muted font-mono tracking-widest uppercase">
-                  PASS // 0{idx+1}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-goog-green animate-pulse"></span>
-              </div>
 
               {/* Avatar Frame */}
               <div className={`w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full overflow-hidden border-2 border-white/8 ${theme.borderAvatar} transition-all duration-300 shadow-md mb-4 flex-none z-10 mt-3`}>
