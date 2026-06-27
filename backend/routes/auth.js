@@ -227,12 +227,17 @@ router.get('/featured-team', async (req, res) => {
       .select('-password')
       .sort({ createdAt: -1 });
 
-    const selectedUsers = featuredRoles.flatMap((role) => {
-      const roleUsers = users.filter((user) => user.role === role);
-      return roleUsers.length > 0 ? [roleUsers[0]] : [];
+    const roleRank = { coordinator: 0, mentor: 1, coremember: 2 };
+    const sortedUsers = [...users].sort((a, b) => {
+      const roleDiff = (roleRank[a.role] ?? 99) - (roleRank[b.role] ?? 99);
+      if (roleDiff !== 0) return roleDiff;
+
+      const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
+      const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
+      return nameA.localeCompare(nameB);
     });
 
-    const formattedUsers = selectedUsers.map((user) => ({
+    const formattedUsers = sortedUsers.map((user) => ({
       _id: user._id,
       name: user.name,
       fullName: user.fullName || user.name,

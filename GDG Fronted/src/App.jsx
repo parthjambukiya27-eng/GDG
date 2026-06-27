@@ -60,15 +60,27 @@ function App() {
   }, [currentPath]);
 
   const syncUser = (updatedUser) => {
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    const normalizedUser = {
+      ...updatedUser,
+      avatarUrl: updatedUser?.avatarUrl || updatedUser?.profilePhotoUrl,
+      profilePhotoUrl: updatedUser?.profilePhotoUrl || updatedUser?.avatarUrl
+    };
+
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
   };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        const normalizedUser = {
+          ...parsedUser,
+          avatarUrl: parsedUser?.avatarUrl || parsedUser?.profilePhotoUrl,
+          profilePhotoUrl: parsedUser?.profilePhotoUrl || parsedUser?.avatarUrl
+        };
+        setUser(normalizedUser);
       } catch (e) {
         localStorage.removeItem('user');
         localStorage.removeItem('token');

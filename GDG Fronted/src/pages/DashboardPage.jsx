@@ -371,7 +371,11 @@ Show this ticket code at entry.
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64Url = event.target.result;
-        const updatedUser = { ...user, avatarUrl: base64Url };
+        const updatedUser = {
+          ...user,
+          avatarUrl: base64Url,
+          profilePhotoUrl: base64Url
+        };
         onUpdateUser && onUpdateUser(updatedUser);
         message.success("Profile picture updated successfully!");
       };
