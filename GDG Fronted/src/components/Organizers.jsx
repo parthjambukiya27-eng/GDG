@@ -65,7 +65,7 @@ const Organizers = () => {
     const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
     const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
     return nameA.localeCompare(nameB);
-  }).slice(0, hasTeamData ? 3 : 1);
+  }).slice(0, hasTeamData ? 4 : 1);
 
   const themes = [
     {
