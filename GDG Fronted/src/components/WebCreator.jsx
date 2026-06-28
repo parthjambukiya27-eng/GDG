@@ -175,20 +175,20 @@ const WebCreator = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:hidden">
+      <div className="grid grid-cols-2 gap-3 sm:hidden max-[380px]:grid-cols-1">
         {creators.map((dev, idx) => (
           <article
             key={idx}
-            className="rounded-2xl border border-white/8 bg-[#111319] p-4 flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+            className="rounded-2xl border border-white/8 bg-[#111319] p-3 flex flex-col items-center justify-center text-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.18)] min-h-[150px]"
           >
-            <div className="w-14 h-14 rounded-full overflow-hidden border border-white/10 flex-none">
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 flex-none">
               <img src={dev.image} alt={dev.name} className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0">
-              <h4 className="m-0 text-sm font-semibold text-text-light">
+              <h4 className="m-0 text-[0.82rem] font-semibold text-text-light leading-tight">
                 {dev.name}
               </h4>
-              <p className="m-0 text-xs text-text-muted font-mono mt-1">
+              <p className="m-0 text-[0.68rem] text-text-muted font-mono mt-1 leading-tight">
                 {dev.role}
               </p>
             </div>

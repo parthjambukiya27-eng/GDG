@@ -445,25 +445,26 @@ Show this ticket code at entry.
           height: 'auto',
           minHeight: 64
         }}>
-          <Space size="middle">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{ fontSize: '16px', width: 40, height: 40 }}
-            />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5" />
-              <div>
-                <Text style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
-                  GDG on Campus
-                </Text>
-                <Text type="secondary" style={{ fontSize: '0.72rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
-                  IIT Bhilai Dashboard
-                </Text>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 10 }}>
+              <Space size="middle" style={{ flex: 1 }}>
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: '16px', width: 40, height: 40 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5 flex-none" />
+                <div style={{ minWidth: 0 }}>
+                  <Text style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
+                    GDG on Campus
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: '0.72rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
+                    IIT Bhilai Dashboard
+                  </Text>
+                </div>
               </div>
-            </div>
-          </Space>
+            </Space>
 
           <div className="hidden md:block" style={{ width: '100%', maxWidth: 460 }}>
             <Input
@@ -488,44 +489,44 @@ Show this ticket code at entry.
             />
           </div>
 
-          <Space size="large" align="center">
-            {/* Search Icon for Mobile */}
-            <Button
-              type="text"
-              shape="circle"
-              icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
-              className="md:hidden"
-              onClick={() => setShowMobileSearch(!showMobileSearch)}
-            />
+            <Space size="large" align="center" style={{ marginLeft: 'auto' }}>
+              {/* Search Icon for Mobile */}
+              <Button
+                type="text"
+                shape="circle"
+                icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
+                className="md:hidden"
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+              />
 
-            {/* Profile icon clicks navigate directly to main site */}
-            <Tooltip title="Main Website">
-              <Space 
-                onClick={() => navigate('#/')}
-                style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} 
-                className="hover:bg-white/5"
-              >
-                <Avatar 
-                  src={profileAvatarSrc} 
-                  style={{ 
-                    background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
-                    fontWeight: 'bold',
-                    border: 'none'
-                  }}
+              {/* Profile icon clicks navigate directly to main site */}
+              <Tooltip title="Main Website">
+                <Space 
+                  onClick={() => navigate('#/')}
+                  style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} 
+                  className="hover:bg-white/5"
                 >
-                  {!profileAvatarSrc && profileAvatarInitials}
-                </Avatar>
-                <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
-                  <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
-                    {user?.name || 'Developer'}
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
-                    {getRoleLabel(user?.role)}
-                  </Text>
-                </div>
-              </Space>
-            </Tooltip>
-          </Space>
+                  <Avatar 
+                    src={profileAvatarSrc} 
+                    style={{ 
+                      background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                      fontWeight: 'bold',
+                      border: 'none'
+                    }}
+                  >
+                    {!profileAvatarSrc && profileAvatarInitials}
+                  </Avatar>
+                  <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
+                    <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
+                      {user?.name || 'Developer'}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
+                      {getRoleLabel(user?.role)}
+                    </Text>
+                  </div>
+                </Space>
+              </Tooltip>
+            </Space>
 
           {showMobileSearch && (
             <div className="w-full pb-2 md:hidden">

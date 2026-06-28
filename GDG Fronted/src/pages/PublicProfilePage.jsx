@@ -146,14 +146,14 @@ const PublicProfilePage = ({ userId, navigate }) => {
             background: '#14161d'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 }}>
             <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('#/')} style={{ fontSize: '16px' }} />
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
               <Text style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', display: 'block' }}>
-                Profile
+                Public Profile
               </Text>
               <Text type="secondary" style={{ fontSize: '0.72rem', color: '#9aa0a6' }}>
-                Public Profile
+                View community member details
               </Text>
             </div>
           </div>
