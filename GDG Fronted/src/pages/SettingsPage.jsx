@@ -6,6 +6,7 @@ import {
 import {
   MenuUnfoldOutlined, MenuFoldOutlined, CameraOutlined, LogoutOutlined, DeleteOutlined, HomeOutlined
 } from '@ant-design/icons';
+import { getAvatarSource, getDisplayInitials, getRoleLabel } from '../utils/userDisplay';
 
 const { Header: AntHeader, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -43,13 +44,6 @@ const googleTheme = {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-const getDisplayInitials = (name) => {
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
-
 const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -58,7 +52,7 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [bio, setBio] = useState(user?.bio || '');
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
-  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarSrc = getAvatarSource(user);
   const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'User');
 
   const handleFileChange = async (e) => {
@@ -253,7 +247,7 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
                     {user?.name || 'Developer'}
                   </Text>
                   <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
-                    {user?.role || 'Member'}
+                    {getRoleLabel(user?.role)}
                   </Text>
                 </div>
               </Space>
@@ -366,7 +360,7 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
                   <div>
                     <Text type="secondary" style={{ display: 'block', marginBottom: 8, color: '#9aa0a6', fontSize: '0.9rem' }}>Role</Text>
                     <Tag color={user?.role === 'coordinator' ? 'gold' : user?.role === 'mentor' ? 'blue' : user?.role === 'coremember' ? 'green' : 'default'}>
-                      {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'Member'}
+                      {getRoleLabel(user?.role)}
                     </Tag>
                   </div>
 

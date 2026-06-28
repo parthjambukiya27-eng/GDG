@@ -12,6 +12,7 @@ import {
   RocketOutlined, StarOutlined, MenuUnfoldOutlined, MenuFoldOutlined,
   VideoCameraOutlined
 } from '@ant-design/icons';
+import { getAvatarSource, getDisplayInitials, getRoleLabel } from '../utils/userDisplay';
 
 const { Header: AntHeader, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -196,13 +197,6 @@ const leaderboardData = [
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-const getDisplayInitials = (name) => {
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
-
 const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -218,7 +212,7 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const isCoordinator = user?.role === 'coordinator';
-  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarSrc = getAvatarSource(user);
   const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'Developer');
 
   const dynamicLeaderboardData = leaderboardData.map(item => {
@@ -526,7 +520,7 @@ Show this ticket code at entry.
                     {user?.name || 'Developer'}
                   </Text>
                   <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
-                    Member
+                    {getRoleLabel(user?.role)}
                   </Text>
                 </div>
               </Space>

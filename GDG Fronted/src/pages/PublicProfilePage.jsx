@@ -5,6 +5,7 @@ import {
 import {
   ArrowLeftOutlined, MailOutlined, UserOutlined
 } from '@ant-design/icons';
+import { getAvatarSource, getDisplayInitials, getRoleLabel } from '../utils/userDisplay';
 
 const { Header: AntHeader, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -58,7 +59,12 @@ const PublicProfilePage = ({ userId, navigate }) => {
         console.log(`Response status: ${response.status}, Data:`, data);
         
         if (response.ok) {
-          setProfile(data.user);
+          const normalizedProfile = {
+            ...data.user,
+            avatarUrl: data.user?.avatarUrl || data.user?.profilePhotoUrl,
+            profilePhotoUrl: data.user?.profilePhotoUrl || data.user?.avatarUrl
+          };
+          setProfile(normalizedProfile);
         } else {
           console.error('Error from API:', data.message);
           message.error(data.message || 'Profile not found');
@@ -76,12 +82,8 @@ const PublicProfilePage = ({ userId, navigate }) => {
     }
   }, [userId]);
 
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-  };
+  const profileAvatarSrc = getAvatarSource(profile);
+  const profileInitials = getDisplayInitials(profile?.fullName || profile?.name || 'User');
 
   if (loading) {
     return (
@@ -150,7 +152,7 @@ const PublicProfilePage = ({ userId, navigate }) => {
                 Profile
               </Text>
               <Text type="secondary" style={{ fontSize: '0.72rem', color: '#9aa0a6' }}>
-                Member Profile
+                Public Profile
               </Text>
             </div>
           </div>
@@ -164,16 +166,16 @@ const PublicProfilePage = ({ userId, navigate }) => {
                 <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                   <Avatar
                     size={120}
-                    src={profile?.profilePhotoUrl || profile?.avatarUrl}
+                    src={profileAvatarSrc}
                     style={{
-                      background: (profile?.profilePhotoUrl || profile?.avatarUrl) ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
+                      background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
                       fontSize: 48,
                       fontWeight: 'bold',
                       boxShadow: '0 4px 12px rgba(66,133,244,0.3)',
                       border: 'none'
                     }}
                   >
-                    {!(profile?.profilePhotoUrl || profile?.avatarUrl) && getInitials(profile?.fullName || profile?.name || 'U')}
+                    {!profileAvatarSrc && profileInitials}
                   </Avatar>
 
                   <div>
@@ -181,7 +183,7 @@ const PublicProfilePage = ({ userId, navigate }) => {
                       {profile?.fullName || profile?.name || 'Community Member'}
                     </Title>
                     <Tag color={roleColor[profile?.role] || 'default'} style={{ marginTop: 8, fontSize: '0.85rem' }}>
-                      {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1) || 'Member'}
+                      {getRoleLabel(profile?.role)}
                     </Tag>
                   </div>
 
@@ -261,7 +263,7 @@ const PublicProfilePage = ({ userId, navigate }) => {
                       Role
                     </Text>
                     <Tag color={roleColor[profile?.role] || 'default'}>
-                      {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1) || 'Member'}
+                      {getRoleLabel(profile?.role)}
                     </Tag>
                   </div>
 
