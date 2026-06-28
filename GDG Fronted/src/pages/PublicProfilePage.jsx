@@ -76,6 +76,13 @@ const PublicProfilePage = ({ userId, navigate }) => {
     }
   }, [userId]);
 
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
   if (loading) {
     return (
       <ConfigProvider theme={googleTheme}>
@@ -166,7 +173,7 @@ const PublicProfilePage = ({ userId, navigate }) => {
                       border: 'none'
                     }}
                   >
-                    {!(profile?.profilePhotoUrl || profile?.avatarUrl) && (profile?.fullName || profile?.name || 'U').charAt(0).toUpperCase()}
+                    {!(profile?.profilePhotoUrl || profile?.avatarUrl) && getInitials(profile?.fullName || profile?.name || 'U')}
                   </Avatar>
 
                   <div>

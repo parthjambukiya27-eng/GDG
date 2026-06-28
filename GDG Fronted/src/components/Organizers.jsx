@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import AvatarFallback from './AvatarFallback';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -218,10 +219,12 @@ const Organizers = () => {
 
               {/* Avatar Frame */}
               <div className={`w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full overflow-hidden border-2 border-white/8 ${theme.borderAvatar} transition-all duration-300 shadow-md mb-4 flex-none z-10 mt-3`}>
-                <img
+                {/* Use centralized avatar fallback */}
+                <AvatarFallback
                   src={member.profilePhotoUrl || member.avatarUrl || member.image}
-                  alt={member.nameDisplay || member.fullName || member.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  name={member.nameDisplay || member.fullName || member.name}
+                  size={80}
+                  className="group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
