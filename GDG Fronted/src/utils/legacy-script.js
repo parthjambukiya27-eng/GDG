@@ -1,41 +1,7 @@
 export const initLegacyUI = () => {
     // --- MOBILE MENU TOGGLE FUNCTIONALITY ---
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const navLinks = document.getElementById('navLinks');
-    
+    // (Managed natively in Header.jsx via React states)
     const eventListeners = [];
-    
-    if (mobileMenuBtn) {
-        const toggleMenu = () => {
-            navLinks.classList.toggle('active');
-        };
-        mobileMenuBtn.addEventListener('click', toggleMenu);
-        eventListeners.push(() => mobileMenuBtn.removeEventListener('click', toggleMenu));
-    
-        // Close menu when a link is clicked
-        const closeMenuOnClick = () => {
-            navLinks.classList.remove('active');
-        };
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', closeMenuOnClick);
-            eventListeners.push(() => link.removeEventListener('click', closeMenuOnClick));
-        });
-    
-        // Close menu when buttons are clicked
-        navLinks.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', closeMenuOnClick);
-            eventListeners.push(() => button.removeEventListener('click', closeMenuOnClick));
-        });
-    
-        // Close menu when clicking outside
-        const handleOutsideClick = (e) => {
-            if (!e.target.closest('.navbar')) {
-                navLinks.classList.remove('active');
-            }
-        };
-        document.addEventListener('click', handleOutsideClick);
-        eventListeners.push(() => document.removeEventListener('click', handleOutsideClick));
-    }
     
     const organizerAvatars = document.querySelectorAll('.organizer-card .avatar');
     organizerAvatars.forEach(avatar => {
@@ -134,6 +100,7 @@ export const initLegacyUI = () => {
     };
     
     const shouldAutoplay = (wrapper) => {
+        if (window.innerWidth < 969) return false;
         const section = wrapper.closest('section');
         if (!section || !section.classList.contains('is-visible')) return false;
         if (section.querySelector('.view-all-panel:not([hidden])')) return false;
@@ -149,6 +116,7 @@ export const initLegacyUI = () => {
         if (!track) return;
     
         wrapper.addEventListener('wheel', (event) => {
+            if (window.innerWidth < 969) return;
             if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
             event.preventDefault();
             pauseAutoplay(wrapper);
@@ -165,6 +133,7 @@ export const initLegacyUI = () => {
         let isSwipeChecking = false;
     
         wrapper.addEventListener('touchstart', (event) => {
+            if (window.innerWidth < 969) return;
             pauseAutoplay(wrapper);
             startX = event.touches[0]?.clientX || 0;
             startY = event.touches[0]?.clientY || 0;
@@ -174,6 +143,7 @@ export const initLegacyUI = () => {
         }, { passive: true });
     
         wrapper.addEventListener('touchmove', (event) => {
+            if (window.innerWidth < 969) return;
             if (!event.touches.length) return;
             const currentX = event.touches[0].clientX || 0;
             const currentY = event.touches[0].clientY || 0;

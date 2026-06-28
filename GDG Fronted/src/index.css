@@ -212,6 +212,43 @@ body.loading {
   }
 }
 
+@media (max-width: 968px) {
+  .carousel-container {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 4px;
+  }
+  
+  .carousel-container::-webkit-scrollbar {
+    display: none;
+  }
+  .carousel-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .carousel-track {
+    transform: none !important;
+    display: flex;
+    gap: 16px;
+  }
+
+  .carousel-item {
+    scroll-snap-align: center;
+    flex: 0 0 86%;
+    min-width: 86%;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .carousel-item.prev,
+  .carousel-item.next {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 .carousel-nav {
   position: absolute;
   top: 50%;

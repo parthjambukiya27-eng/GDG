@@ -2,7 +2,7 @@ import React from 'react';
 
 const Hero = ({ user, onOpenRegister }) => {
   return (
-    <section className="grid grid-cols-[1.1fr_0.9fr] items-center gap-12 py-16 max-lg:grid-cols-1 max-lg:text-center max-sm:py-8 flex-grow">
+    <section className="grid grid-cols-[1.1fr_0.9fr] items-center gap-12 py-16 max-lg:grid-cols-1 max-lg:text-center max-lg:pb-24 max-sm:pb-16 flex-grow">
       
       {/* Left Column: Hero Copy & Actions */}
       <div className="hero-content text-left max-lg:text-center max-lg:max-w-2xl max-lg:mx-auto">
@@ -65,16 +65,16 @@ const Hero = ({ user, onOpenRegister }) => {
       </div>
 
       {/* Right Column: Visual Dashboard Mockup */}
-      <div className="relative flex items-center justify-center w-full min-h-[420px] max-lg:min-h-[380px] max-sm:min-h-[340px] max-lg:mt-4 px-2">
+      <div className="relative flex items-center justify-center w-full min-h-auto lg:min-h-[420px] max-lg:mt-12 px-2">
         
         {/* Backdrop Glow Decoration */}
         <div className="absolute w-[280px] h-[280px] rounded-full bg-goog-blue/10 blur-[80px] -z-10 top-1/4 left-1/4"></div>
         <div className="absolute w-[240px] h-[240px] rounded-full bg-goog-yellow/10 blur-[80px] -z-10 bottom-1/4 right-1/4"></div>
 
-        {/* Inner Wrapper to contain the absolute cards within a fixed size container */}
-        <div className="relative w-full max-w-[440px] h-[380px] max-sm:max-w-[320px] max-sm:h-[320px]">
+        {/* Inner Wrapper containing stacked elements on mobile, absolute elements on desktop */}
+        <div className="relative w-full max-w-[440px] flex flex-col items-center gap-6 lg:block lg:h-[380px]">
           {/* Card 1: Community Dashboard Hub */}
-          <div className="absolute top-0 left-0 w-[340px] max-sm:w-[260px] bg-[#14161d] border border-white/8 rounded-2xl shadow-2xl p-5 max-sm:p-4 text-left transform -rotate-3 transition-transform duration-300 hover:rotate-0 hover:z-20">
+          <div className="relative lg:absolute lg:top-0 lg:left-0 w-full max-w-[340px] lg:w-[340px] bg-[#14161d] border border-white/8 rounded-2xl shadow-2xl p-5 max-sm:p-4 text-left transform -rotate-3 transition-transform duration-300 hover:rotate-0 hover:z-20">
             <div className="flex items-center justify-between mb-4 border-b border-white/6 pb-3">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
@@ -122,7 +122,7 @@ const Hero = ({ user, onOpenRegister }) => {
           </div>
 
           {/* Card 2: verified Member Pass */}
-          <div className="absolute bottom-0 right-0 w-[290px] max-sm:w-[220px] bg-[#1a1c23] border border-white/8 rounded-2xl shadow-2xl p-5 max-sm:p-4 text-left transform rotate-3 transition-transform duration-300 hover:rotate-0 hover:z-20">
+          <div className="relative lg:absolute lg:bottom-0 lg:right-0 w-full max-w-[290px] lg:w-[290px] bg-[#1a1c23] border border-white/8 rounded-2xl shadow-2xl p-5 max-sm:p-4 text-left transform rotate-3 transition-transform duration-300 hover:rotate-0 hover:z-20 max-lg:mt-[-40px] z-10 lg:z-auto">
             <div className="flex justify-between items-start mb-4">
               <img src="https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2.0,f_auto,g_center,h_1200,q_100,w_1200/v1/gcs/platform-data-goog/contentbuilder/GDG_Bevy_SocialSharingThumbnail_KFxxrrs.png" alt="GDG Logo" className="h-6 object-contain" />
               <span className="px-2 py-0.5 rounded bg-goog-green/12 text-goog-green border border-goog-green/20 text-[0.65rem] font-bold uppercase tracking-wider">
