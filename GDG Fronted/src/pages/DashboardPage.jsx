@@ -198,6 +198,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -459,7 +460,9 @@ Show this ticket code at entry.
           padding: '10px 18px', 
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#14161d'
+          background: '#14161d',
+          height: 'auto',
+          minHeight: 64
         }}>
           <Space size="middle">
             <Button
@@ -481,7 +484,7 @@ Show this ticket code at entry.
             </div>
           </Space>
 
-          <div style={{ width: '100%', maxWidth: 460 }}>
+          <div className="hidden md:block" style={{ width: '100%', maxWidth: 460 }}>
             <Input
               size="large"
               prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
@@ -510,7 +513,8 @@ Show this ticket code at entry.
               type="text"
               shape="circle"
               icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
-              className="sm:hidden"
+              className="md:hidden"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
             />
 
             {/* Profile icon clicks navigate directly to main site */}
@@ -541,6 +545,25 @@ Show this ticket code at entry.
               </Space>
             </Tooltip>
           </Space>
+
+          {showMobileSearch && (
+            <div className="w-full pb-2 md:hidden">
+              <Input
+                size="large"
+                prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
+                placeholder="Search members, events, projects..."
+                value={searchQuery}
+                onChange={handleSearch}
+                allowClear
+                style={{
+                  borderRadius: 28,
+                  background: '#10131a',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#ffffff',
+                }}
+              />
+            </div>
+          )}
         </AntHeader>
 
         <Layout>
@@ -1009,29 +1032,6 @@ Show this ticket code at entry.
                           key={item.id}
                           style={{ padding: '16px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}
                           className="text-left"
-                          actions={[
-                            <Button 
-                              type="primary" 
-                              icon={<VideoCameraOutlined />} 
-                              onClick={() => window.open(item.meetLink, '_blank')}
-                              disabled={item.rsvp !== 'Going'}
-                            >
-                              Join Meet
-                            </Button>,
-                            <Button 
-                              icon={<DownloadOutlined />} 
-                              onClick={() => handleDownloadTicket(item)}
-                              disabled={item.rsvp !== 'Going'}
-                            >
-                              Get Ticket
-                            </Button>,
-                            <Button 
-                              type="text" 
-                              onClick={() => handleRsvpToggle(item.id)}
-                            >
-                              {item.rsvp === 'Going' ? 'Cancel RSVP' : 'RSVP Going'}
-                            </Button>
-                          ]}
                         >
                           <List.Item.Meta
                             avatar={
@@ -1058,6 +1058,29 @@ Show this ticket code at entry.
                               </Space>
                             }
                           />
+                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+                            <Button 
+                              type="primary" 
+                              icon={<VideoCameraOutlined />} 
+                              onClick={() => window.open(item.meetLink, '_blank')}
+                              disabled={item.rsvp !== 'Going'}
+                            >
+                              Join Meet
+                            </Button>
+                            <Button 
+                              icon={<DownloadOutlined />} 
+                              onClick={() => handleDownloadTicket(item)}
+                              disabled={item.rsvp !== 'Going'}
+                            >
+                              Get Ticket
+                            </Button>
+                            <Button 
+                              type="text" 
+                              onClick={() => handleRsvpToggle(item.id)}
+                            >
+                              {item.rsvp === 'Going' ? 'Cancel RSVP' : 'RSVP Going'}
+                            </Button>
+                          </div>
                         </List.Item>
                       )}
                     />

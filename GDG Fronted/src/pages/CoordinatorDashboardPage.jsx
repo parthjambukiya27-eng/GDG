@@ -167,6 +167,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 const CoordinatorDashboardPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
@@ -516,7 +517,9 @@ Show this ticket code at entry.
             padding: '10px 18px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
-            background: '#14161d'
+            background: '#14161d',
+            height: 'auto',
+            minHeight: 64
           }}
         >
           <Space size="middle">
@@ -539,7 +542,7 @@ Show this ticket code at entry.
             </div>
           </Space>
 
-          <div style={{ width: '100%', maxWidth: 460 }}>
+          <div className="hidden md:block" style={{ width: '100%', maxWidth: 460 }}>
             <Input
               size="large"
               prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
@@ -563,6 +566,15 @@ Show this ticket code at entry.
           </div>
 
           <Space size="large" align="center">
+            {/* Search Icon for Mobile */}
+            <Button
+              type="text"
+              shape="circle"
+              icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
+              className="md:hidden"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+            />
+
             <Tooltip title="Main Website">
               <Space onClick={() => navigate('#/')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
                 <Avatar src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
@@ -579,6 +591,25 @@ Show this ticket code at entry.
               </Space>
             </Tooltip>
           </Space>
+
+          {showMobileSearch && (
+            <div className="w-full pb-2 md:hidden">
+              <Input
+                size="large"
+                prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
+                placeholder="Search members, events, projects..."
+                value={searchQuery}
+                onChange={handleSearch}
+                allowClear
+                style={{
+                  borderRadius: 28,
+                  background: '#10131a',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#ffffff',
+                }}
+              />
+            </div>
+          )}
         </AntHeader>
 
         <Layout>
@@ -789,7 +820,7 @@ Show this ticket code at entry.
                       <Title level={4} style={{ margin: 0, color: '#ffffff' }}>Leaderboard</Title>
                       <Tag color="green">XP</Tag>
                     </div>
-                    <Table dataSource={dynamicLeaderboardData} columns={leaderboardColumns} pagination={false} rowKey="key" />
+                    <Table dataSource={dynamicLeaderboardData} columns={leaderboardColumns} pagination={false} rowKey="key" scroll={{ x: 'max-content' }} />
                   </Card>
                 </Col>
               </Row>
@@ -825,7 +856,7 @@ Show this ticket code at entry.
                       <Text style={{ color: '#9aa0a6', display: 'block', marginBottom: 12 }}>Choose a current member account to become the new coordinator. Your current coordinator access will be moved to them.</Text>
                       <Select placeholder="Select a member" value={selectedMemberId} onChange={setSelectedMemberId} style={{ width: '100%' }} options={users.filter((entry) => entry.role === 'member').map((entry) => ({ label: `${entry.fullName || entry.name || entry.username} (${entry.email})`, value: entry._id }))} />
                     </Modal>
-                    <Table loading={loading} dataSource={users} rowKey="_id" pagination={{ pageSize: 8 }} columns={[
+                    <Table loading={loading} dataSource={users} rowKey="_id" pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} columns={[
                       {
                         title: 'User',
                         key: 'user',

@@ -248,6 +248,23 @@ export const initLegacyUI = () => {
             wrapper.dataset.userPaused = 'false';
             refreshWrapper(wrapper);
             attachHorizontalControl(wrapper);
+
+            // Sync progress indicator dynamically with native mobile swipe scroll
+            const container = wrapper.querySelector('.carousel-container');
+            if (container) {
+                const scrollHandler = () => {
+                    if (window.innerWidth < 969) {
+                        const maxScroll = container.scrollWidth - container.clientWidth;
+                        const currentScroll = container.scrollLeft;
+                        const indicator = wrapper.closest('section')?.querySelector('.section-progress .indicator');
+                        if (indicator) {
+                            indicator.style.width = `${maxScroll ? (currentScroll / maxScroll) * 100 : 0}%`;
+                        }
+                    }
+                };
+                container.addEventListener('scroll', scrollHandler, { passive: true });
+                eventListeners.push(() => container.removeEventListener('scroll', scrollHandler));
+            }
         });
         syncWrapperIndicators();
     };
