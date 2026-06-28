@@ -527,6 +527,7 @@ Show this ticket code at entry.
                 </Space>
               </Tooltip>
             </Space>
+          </div>
 
           {showMobileSearch && (
             <div className="w-full pb-2 md:hidden">

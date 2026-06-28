@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "npm run build --prefix \"GDG Fronted\"",
+    "dev": "npm run dev --prefix \"GDG Fronted\""
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
     "tailwindcss": "^4.3.1"
