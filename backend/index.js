@@ -21,31 +21,7 @@ const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/gdg-iitbhil
 mongoose.connect(mongoURI)
   .then(async () => {
     console.log('Successfully connected to MongoDB database!');
-
-    const existingCoordinator = await User.findOne({
-      $or: [
-        { email: 'krish@example.com' },
-        { username: 'krish' }
-      ]
-    });
-
-    if (!existingCoordinator) {
-      const coordinator = new User({
-        name: 'Krish',
-        fullName: 'Krish Shiyani',
-        username: 'krish',
-        email: 'krish@example.com',
-        password: await bcrypt.hash('Krish@123', 10),
-        role: 'coordinator',
-        profilePhotoUrl: 'https://ui-avatars.com/api/?name=Krish+Shiyani&background=4285F4&color=ffffff&rounded=true',
-        bio: 'Coordinator for the GDG campus community.'
-      });
-      await coordinator.save();
-      console.log('Seeded coordinator account for Krish.');
-    } else {
-      console.log('Coordinator account already exists; skipping seed.');
-    }
-  })
+})
   .catch(err => {
     console.error('MongoDB database connection error:', err.message);
   });
