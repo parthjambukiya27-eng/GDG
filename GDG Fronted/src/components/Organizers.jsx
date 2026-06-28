@@ -138,7 +138,7 @@ const Organizers = () => {
       </div>
 
       {/* Grid Layout */}
-      <div className="grid grid-cols-4 gap-6 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-2 max-[480px]:grid-cols-1 w-full text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full text-center">
         {visibleTeam.map((member, idx) => {
           const theme = themes[idx % 4];
           const handleCardClick = () => {

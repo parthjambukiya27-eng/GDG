@@ -175,7 +175,7 @@ const WebCreator = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:hidden max-[380px]:grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 sm:hidden">
         {creators.map((dev, idx) => (
           <article
             key={idx}

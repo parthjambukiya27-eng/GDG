@@ -739,7 +739,9 @@ Show this ticket code at entry.
                       <Title level={4} style={{ margin: 0, color: '#ffffff' }}>Leaderboard</Title>
                       <Tag color="green">XP</Tag>
                     </div>
-                    <Table dataSource={dynamicLeaderboardData} columns={leaderboardColumns} pagination={false} rowKey="key" scroll={{ x: 'max-content' }} />
+                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                      <Table dataSource={dynamicLeaderboardData} columns={leaderboardColumns} pagination={false} rowKey="key" scroll={{ x: 'max-content' }} />
+                    </div>
                   </Card>
                 </Col>
               </Row>
@@ -771,33 +773,35 @@ Show this ticket code at entry.
                         </Card>
                       </Col>
                     </Row>
-                    <Table loading={loading} dataSource={filteredUsers} rowKey="_id" pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} columns={[
-                      {
-                        title: 'User',
-                        key: 'user',
-                        render: (_, record) => (
-                          <Space>
-                            <Avatar src={record.profilePhotoUrl || record.avatarUrl || undefined} size={38}>{getDisplayInitials(record.fullName || record.name || record.username || 'User')}</Avatar>
-                            <div>
-                              <div className="font-semibold text-white">{record.fullName || record.name || record.username}</div>
-                              <div className="text-sm text-[#9aa0a6]">{record.email}</div>
-                            </div>
-                          </Space>
-                        )
-                      },
-                      {
-                        title: 'Current Role',
-                        key: 'role',
-                        render: (_, record) => <Tag color={record.role === 'coordinator' ? 'gold' : 'blue'}>{record.role}</Tag>
-                      },
-                      {
-                        title: 'Assign Role',
-                        key: 'action',
-                        render: (_, record) => (
-                          <Select value={record.role} style={{ minWidth: 170 }} options={roleOptions} loading={updatingUserId === record._id} onChange={(nextRole) => handleRoleChange(record._id, nextRole)} />
-                        )
-                      }
-                    ]} />
+                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                      <Table loading={loading} dataSource={filteredUsers} rowKey="_id" pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} columns={[
+                        {
+                          title: 'User',
+                          key: 'user',
+                          render: (_, record) => (
+                            <Space>
+                              <Avatar src={record.profilePhotoUrl || record.avatarUrl || undefined} size={38}>{getDisplayInitials(record.fullName || record.name || record.username || 'User')}</Avatar>
+                              <div>
+                                <div className="font-semibold text-white">{record.fullName || record.name || record.username}</div>
+                                <div className="text-sm text-[#9aa0a6]">{record.email}</div>
+                              </div>
+                            </Space>
+                          )
+                        },
+                        {
+                          title: 'Current Role',
+                          key: 'role',
+                          render: (_, record) => <Tag color={record.role === 'coordinator' ? 'gold' : 'blue'}>{record.role}</Tag>
+                        },
+                        {
+                          title: 'Assign Role',
+                          key: 'action',
+                          render: (_, record) => (
+                            <Select value={record.role} style={{ minWidth: 170 }} options={roleOptions} loading={updatingUserId === record._id} onChange={(nextRole) => handleRoleChange(record._id, nextRole)} />
+                          )
+                        }
+                      ]} />
+                    </div>
                   </Card>
                 </Col>
               </Row>

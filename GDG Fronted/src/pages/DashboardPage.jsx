@@ -1109,13 +1109,14 @@ Show this ticket code at entry.
                       boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
                     }}
                   >
-                    <Table 
-                      columns={leaderboardColumns} 
-                      dataSource={dynamicLeaderboardData} 
-                      pagination={false} 
-                      responsive={['md', 'lg']}
-                      scroll={{ x: 'max-content' }}
-                    />
+                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                      <Table 
+                        columns={leaderboardColumns} 
+                        dataSource={dynamicLeaderboardData} 
+                        pagination={false} 
+                        scroll={{ x: 'max-content' }}
+                      />
+                    </div>
                   </Card>
                 </Col>
 
