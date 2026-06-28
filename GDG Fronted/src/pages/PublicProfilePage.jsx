@@ -289,18 +289,18 @@ const PublicProfilePage = ({ userId, navigate }) => {
             <Title level={4} style={{ margin: '0 0 16px 0', color: '#ffffff' }}>Community Status</Title>
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 20 }}>
               <div style={{ textAlign: 'center' }}>
-                <Title level={5} style={{ margin: 0, color: '#4285F4' }}>
-                  Member
-                </Title>
-                <Text type="secondary" style={{ fontSize: '0.9rem', color: '#9aa0a6' }}>
+                <Tag color={roleColor[profile?.role] || 'default'} style={{ fontSize: '0.9rem', padding: '4px 10px' }}>
+                  {getRoleLabel(profile?.role)}
+                </Tag>
+                <Text type="secondary" style={{ fontSize: '0.9rem', color: '#9aa0a6', display: 'block', marginTop: 8 }}>
                   Active in community
                 </Text>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <Title level={5} style={{ margin: 0, color: '#34A853' }}>
+                <Tag color="green" style={{ fontSize: '0.9rem', padding: '4px 10px' }}>
                   Engaged
-                </Title>
-                <Text type="secondary" style={{ fontSize: '0.9rem', color: '#9aa0a6' }}>
+                </Tag>
+                <Text type="secondary" style={{ fontSize: '0.9rem', color: '#9aa0a6', display: 'block', marginTop: 8 }}>
                   Participating in events
                 </Text>
               </div>
