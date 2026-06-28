@@ -139,7 +139,8 @@ const PublicProfilePage = ({ userId, navigate }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '10px 24px',
+            padding: '14px 24px',
+            minHeight: 72,
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             background: '#14161d'

@@ -64,10 +64,10 @@ const WebCreator = () => {
       </div>
 
       {/* Interactive Panel Grid */}
-      <div className="grid grid-cols-[1.5fr_1fr] gap-8 items-stretch max-lg:grid-cols-1 max-sm:gap-6 w-full text-left">
+      <div className="hidden sm:grid grid-cols-[1.5fr_1fr] gap-8 items-stretch max-lg:grid-cols-1 w-full text-left">
         
         {/* Left Column: Active Profile Card Viewer */}
-        <div className="relative bg-[#14161d] border border-white/8 rounded-3xl p-8 max-sm:p-6 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden transition-all duration-300 shadow-2xl min-h-[300px] max-sm:min-h-auto">
+        <div className="relative bg-[#14161d] border border-white/8 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden transition-all duration-300 shadow-2xl min-h-[300px]">
           {/* Radial glow backdrop */}
           <div className={`absolute inset-0 ${activeDev.glow} -z-1`}></div>
 
@@ -173,7 +173,27 @@ const WebCreator = () => {
             );
           })}
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 gap-3 sm:hidden">
+        {creators.map((dev, idx) => (
+          <article
+            key={idx}
+            className="rounded-2xl border border-white/8 bg-[#111319] p-4 flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+          >
+            <div className="w-14 h-14 rounded-full overflow-hidden border border-white/10 flex-none">
+              <img src={dev.image} alt={dev.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="m-0 text-sm font-semibold text-text-light">
+                {dev.name}
+              </h4>
+              <p className="m-0 text-xs text-text-muted font-mono mt-1">
+                {dev.role}
+              </p>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
