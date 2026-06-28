@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Layout, Menu, Card, Avatar, Badge, Progress, Table, List, 
   Button, Row, Col, Input, Space, ConfigProvider, 
@@ -10,7 +10,7 @@ import {
   UserOutlined, LogoutOutlined, HomeOutlined, 
   CheckCircleOutlined, DeleteOutlined, DownloadOutlined, TeamOutlined, 
   RocketOutlined, StarOutlined, MenuUnfoldOutlined, MenuFoldOutlined,
-  VideoCameraOutlined, CameraOutlined
+  VideoCameraOutlined
 } from '@ant-design/icons';
 
 const { Header: AntHeader, Sider, Content } = Layout;
@@ -196,6 +196,13 @@ const leaderboardData = [
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+const getDisplayInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -209,9 +216,10 @@ const DashboardPage = ({ user, onLogout, onUpdateUser, navigate }) => {
     leaderboard: []
   });
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const fileInputRef = useRef(null);
 
   const isCoordinator = user?.role === 'coordinator';
+  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'Developer');
 
   const dynamicLeaderboardData = leaderboardData.map(item => {
     if (item.key === '3') {
@@ -362,28 +370,6 @@ Show this ticket code at entry.
     });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        message.error("Image size must be smaller than 2MB!");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Url = event.target.result;
-        const updatedUser = {
-          ...user,
-          avatarUrl: base64Url,
-          profilePhotoUrl: base64Url
-        };
-        onUpdateUser && onUpdateUser(updatedUser);
-        message.success("Profile picture updated successfully!");
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const leaderboardColumns = [
     {
       title: 'Rank',
@@ -405,17 +391,18 @@ Show this ticket code at entry.
       key: 'name',
       render: (text, record) => {
         const isCurrentUser = record.key === '3';
+        const avatarLabel = isCurrentUser ? profileAvatarInitials : text.charAt(0);
         return (
           <Space>
             <Avatar 
-              src={(isCurrentUser && user?.avatarUrl) ? user.avatarUrl : undefined}
+              src={(isCurrentUser && profileAvatarSrc) ? profileAvatarSrc : undefined}
               style={{ 
-                background: (isCurrentUser && user?.avatarUrl) ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
+                background: (isCurrentUser && profileAvatarSrc) ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)',
                 fontWeight: 'bold',
                 border: 'none'
               }}
             >
-              {!(isCurrentUser && user?.avatarUrl) ? text.charAt(0) : null}
+              {!(isCurrentUser && profileAvatarSrc) ? avatarLabel : null}
             </Avatar>
             <Text style={{ fontWeight: 600 }}>{text}</Text>
           </Space>
@@ -525,14 +512,14 @@ Show this ticket code at entry.
                 className="hover:bg-white/5"
               >
                 <Avatar 
-                  src={user?.avatarUrl || undefined} 
+                  src={profileAvatarSrc} 
                   style={{ 
-                    background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                    background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                     fontWeight: 'bold',
                     border: 'none'
                   }}
                 >
-                  {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                  {!profileAvatarSrc && profileAvatarInitials}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
                   <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
@@ -856,52 +843,20 @@ Show this ticket code at entry.
                     }}
                   >
                     <div style={{ display: 'flex', gap: 20, alignItems: 'start' }} className="max-sm:flex-col text-left">
-                      {/* Interactive profile edit camera badge */}
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <div style={{ flexShrink: 0 }}>
                         <Avatar 
                           size={80} 
-                          src={user?.avatarUrl || undefined}
+                          src={profileAvatarSrc}
                           style={{ 
-                            background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                            background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                             fontSize: 32, 
                             fontWeight: 'bold', 
                             boxShadow: '0 4px 12px rgba(66,133,244,0.3)',
                             border: 'none'
                           }}
                         >
-                          {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                          {!profileAvatarSrc && profileAvatarInitials}
                         </Avatar>
-                        <Tooltip title="Change Profile Picture">
-                          <Button
-                            type="primary"
-                            shape="circle"
-                            size="small"
-                            icon={<CameraOutlined style={{ fontSize: 12 }} />}
-                            style={{
-                              position: 'absolute',
-                              bottom: 0,
-                              right: 0,
-                              border: '2px solid #14161d',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                              backgroundColor: '#4285F4',
-                              width: 24,
-                              height: 24,
-                              minWidth: 24,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: 0
-                            }}
-                            onClick={() => fileInputRef.current.click()}
-                          />
-                        </Tooltip>
-                        <input 
-                          type="file" 
-                          ref={fileInputRef} 
-                          onChange={handleFileChange} 
-                          accept="image/*" 
-                          style={{ display: 'none' }} 
-                        />
                       </div>
                       <div style={{ flexGrow: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>

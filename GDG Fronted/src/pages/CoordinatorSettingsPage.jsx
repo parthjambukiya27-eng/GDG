@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Layout, Menu, Card, Avatar, Button, Row, Col, Input as InputCom, Space, 
-  ConfigProvider, message, Tooltip, Tag, Typography, theme, Modal, Divider, Table, Select
+  ConfigProvider, message, Tooltip, Tag, Typography, theme, Modal, Divider
 } from 'antd';
 import {
-  MenuUnfoldOutlined, MenuFoldOutlined, CameraOutlined, LogoutOutlined, DeleteOutlined, HomeOutlined, CrownOutlined
+  MenuUnfoldOutlined, MenuFoldOutlined, CameraOutlined, LogoutOutlined, DeleteOutlined, HomeOutlined
 } from '@ant-design/icons';
 
 const { Header: AntHeader, Sider, Content } = Layout;
@@ -43,6 +43,13 @@ const googleTheme = {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+const getDisplayInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -52,10 +59,9 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
   const [saving, setSaving] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [selectedMemberId, setSelectedMemberId] = useState(null);
-  const [transferring, setTransferring] = useState(false);
   const fileInputRef = useRef(null);
+  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'Coordinator');
 
   const loadUsers = async () => {
     try {
@@ -165,47 +171,6 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
     }
   };
 
-  const handleTransferCoordinator = async () => {
-    if (!selectedMemberId) {
-      message.warning('Choose a member to promote to coordinator.');
-      return;
-    }
-
-    try {
-      setTransferring(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/auth/users/${selectedMemberId}/transfer-coordinator`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Unable to transfer coordinator');
-
-      onUserUpdate?.({
-        ...user,
-        role: 'member',
-        name: data.currentUser.fullName || data.currentUser.name,
-        fullName: data.currentUser.fullName || data.currentUser.name,
-        avatarUrl: data.currentUser.avatarUrl || data.currentUser.profilePhotoUrl,
-        profilePhotoUrl: data.currentUser.avatarUrl || data.currentUser.profilePhotoUrl
-      });
-
-      message.success(`${data.newCoordinator.fullName || data.newCoordinator.username} is now the coordinator.`);
-      setIsTransferModalOpen(false);
-      setSelectedMemberId(null);
-      await loadUsers();
-      window.dispatchEvent(new Event('teamProfilesChanged'));
-      setTimeout(() => navigate('#/dashboard'), 1500);
-    } catch (error) {
-      message.error(error.message);
-    } finally {
-      setTransferring(false);
-    }
-  };
-
   const handleDeleteAccount = async () => {
     Modal.confirm({
       title: 'Delete your account? This cannot be undone.',
@@ -302,8 +267,8 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
           <Space size="large" align="center">
             <Tooltip title="Your Profile">
               <Space onClick={() => navigate('#/coordinator-dashboard')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
-                <Avatar src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
-                  {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                <Avatar src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
+                  {!profileAvatarSrc && profileAvatarInitials}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
                   <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
@@ -359,8 +324,8 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
                 <Title level={4} style={{ margin: '0 0 16px 0', color: '#ffffff' }}>Profile Picture</Title>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ position: 'relative' }}>
-                    <Avatar size={120} src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 48, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none' }}>
-                      {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                    <Avatar size={120} src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 48, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none' }}>
+                      {!profileAvatarSrc && profileAvatarInitials}
                     </Avatar>
                     <Tooltip title="Change Profile Picture">
                       <Button type="primary" shape="circle" size="large" icon={<CameraOutlined style={{ fontSize: 16 }} />} style={{ position: 'absolute', bottom: 0, right: 0, border: '2px solid #14161d', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', backgroundColor: '#4285F4' }} onClick={() => fileInputRef.current.click()} />
@@ -438,18 +403,6 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
                 </div>
               </Card>
 
-              {/* Transfer Coordinator Section */}
-              <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', marginBottom: 24, borderLeft: '4px solid #FBBC05' }}>
-                <Title level={4} style={{ margin: '0 0 16px 0', color: '#FBBC05' }}>Transfer Coordinator Role</Title>
-                <Divider />
-                <Text type="secondary" style={{ color: '#9aa0a6', marginBottom: 16, display: 'block' }}>
-                  You can transfer the coordinator role to another member. They will become the new coordinator, and you will be demoted to a regular member.
-                </Text>
-                <Button type="primary" icon={<CrownOutlined />} onClick={() => setIsTransferModalOpen(true)}>
-                  Transfer Coordinator
-                </Button>
-              </Card>
-
               {/* Danger Zone */}
               <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', borderLeft: '4px solid #EA4335' }}>
                 <Title level={4} style={{ margin: '0 0 16px 0', color: '#EA4335' }}>Danger Zone</Title>
@@ -464,31 +417,6 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
                 </div>
               </Card>
 
-              {/* Transfer Coordinator Modal */}
-              <Modal 
-                title="Transfer coordinator role" 
-                open={isTransferModalOpen} 
-                onCancel={() => setIsTransferModalOpen(false)} 
-                onOk={handleTransferCoordinator} 
-                okText="Promote selected member" 
-                confirmLoading={transferring}
-              >
-                <Text style={{ color: '#9aa0a6', display: 'block', marginBottom: 12 }}>
-                  Choose a current member account to become the new coordinator. Your current coordinator access will be moved to them.
-                </Text>
-                <Select
-                  placeholder="Select a member to promote"
-                  value={selectedMemberId}
-                  onChange={setSelectedMemberId}
-                  options={users
-                    .filter((u) => u.role === 'member')
-                    .map((u) => ({
-                      label: `${u.fullName || u.name} (${u.username})`,
-                      value: u._id
-                    }))}
-                  style={{ width: '100%' }}
-                />
-              </Modal>
             </Content>
           </Layout>
         </Layout>

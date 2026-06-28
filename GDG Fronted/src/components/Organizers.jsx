@@ -14,8 +14,6 @@ const defaultProfileCard = {
 const Organizers = () => {
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('rolePriority');
 
   const loadTeam = async () => {
     try {
@@ -72,25 +70,7 @@ const Organizers = () => {
       }))
       ;
 
-    // Apply role filter
-    let filtered = teamMembers;
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter((m) => m.role === roleFilter);
-    }
-
-    // Apply sorting
-    const sorted = filtered.sort((a, b) => {
-      if (sortBy === 'nameAsc') {
-        const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
-        const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
-        return nameA.localeCompare(nameB);
-      }
-      if (sortBy === 'nameDesc') {
-        const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
-        const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
-        return nameB.localeCompare(nameA);
-      }
-      // default: rolePriority
+    const sorted = [...teamMembers].sort((a, b) => {
       const priorityA = roleOrder.indexOf(a.role) === -1 ? roleOrder.length : roleOrder.indexOf(a.role);
       const priorityB = roleOrder.indexOf(b.role) === -1 ? roleOrder.length : roleOrder.indexOf(b.role);
       if (priorityA !== priorityB) return priorityA - priorityB;
@@ -158,35 +138,6 @@ const Organizers = () => {
       </div>
 
       {/* Grid Layout */}
-      {/* Controls: role filter + sort */}
-      <div className="flex items-center gap-4 mb-6 max-sm:flex-col max-sm:items-start">
-        <div className="flex items-center gap-2">
-          <label className="text-text-muted text-sm">Filter:</label>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="bg-[#0f1113] text-text-light border border-white/6 rounded px-3 py-1 text-sm"
-          >
-            <option value="all">All Roles</option>
-            <option value="coordinator">{formatRoleLabel('coordinator')}</option>
-            <option value="mentor">{formatRoleLabel('mentor')}</option>
-            <option value="coremember">{formatRoleLabel('coremember')}</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-text-muted text-sm">Sort:</label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#0f1113] text-text-light border border-white/6 rounded px-3 py-1 text-sm"
-          >
-            <option value="rolePriority">Role Priority</option>
-            <option value="nameAsc">Name A - Z</option>
-            <option value="nameDesc">Name Z - A</option>
-          </select>
-        </div>
-      </div>
       <div className="grid grid-cols-4 gap-6 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-2 max-[480px]:grid-cols-1 w-full text-center">
         {visibleTeam.map((member, idx) => {
           const theme = themes[idx % 4];

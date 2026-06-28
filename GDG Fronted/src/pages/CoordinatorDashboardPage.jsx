@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Layout, Menu, Card, Avatar, Badge, Progress, Table, List, Button, Row, Col, Input, Space,
   ConfigProvider, message, Tooltip, Tag, Typography, theme, Modal, Empty, Select
 } from 'antd';
 import {
   DashboardOutlined, CalendarOutlined, BookOutlined, ProjectOutlined, TrophyOutlined, SearchOutlined,
-  LogoutOutlined, DeleteOutlined, DownloadOutlined, MenuUnfoldOutlined, MenuFoldOutlined, CameraOutlined,
+  LogoutOutlined, DeleteOutlined, DownloadOutlined, MenuUnfoldOutlined, MenuFoldOutlined,
   CrownOutlined, TeamOutlined, UserSwitchOutlined
 } from '@ant-design/icons';
 
@@ -165,20 +165,24 @@ const roleOptions = [
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+const getDisplayInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const CoordinatorDashboardPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [selectedMemberId, setSelectedMemberId] = useState(null);
-  const [transferring, setTransferring] = useState(false);
+  const [roleFilter, setRoleFilter] = useState('all');
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ events: [], tracks: [], projects: [], leaderboard: [] });
-  const fileInputRef = useRef(null);
 
   const loadUsers = async () => {
     try {
@@ -207,7 +211,14 @@ const CoordinatorDashboardPage = ({ user, onLogout, onUserUpdate, navigate }) =>
     core: users.filter((entry) => entry.role === 'coremember').length
   }), [users]);
 
+  const filteredUsers = useMemo(() => {
+    if (roleFilter === 'all') return users;
+    return users.filter((entry) => entry.role === roleFilter);
+  }, [users, roleFilter]);
+
   const isCoordinator = user?.role === 'coordinator';
+  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'Coordinator');
 
   const dynamicLeaderboardData = useMemo(() => leaderboardData.map((item) => (
     item.key === '3' ? { ...item, name: user?.name || user?.fullName || item.name } : item
@@ -297,57 +308,6 @@ Show this ticket code at entry.
     message.success(`Application sent for "${project.title}"!`);
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      message.error('Image size must be smaller than 2MB!');
-      return;
-    }
-
-    try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const base64Url = event.target?.result;
-        const token = localStorage.getItem('token');
-
-        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            fullName: user?.fullName || user?.name,
-            profilePhotoUrl: base64Url,
-            bio: user?.bio || ''
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Unable to update profile picture');
-
-        const updatedUser = {
-          ...user,
-          name: data.user?.fullName || data.user?.name || user?.name,
-          fullName: data.user?.fullName || data.user?.name || user?.fullName || user?.name,
-          avatarUrl: data.user?.avatarUrl || data.user?.profilePhotoUrl || base64Url,
-          profilePhotoUrl: data.user?.profilePhotoUrl || data.user?.avatarUrl || base64Url,
-          bio: data.user?.bio || user?.bio || ''
-        };
-
-        onUserUpdate?.(updatedUser);
-        window.dispatchEvent(new Event('teamProfilesChanged'));
-        message.success('Profile picture updated successfully!');
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
-      message.error(error.message || 'Unable to update profile picture');
-    }
-  };
-
   const handleRoleChange = async (userId, nextRole) => {
     try {
       setUpdatingUserId(userId);
@@ -372,47 +332,6 @@ Show this ticket code at entry.
       message.error(error.message);
     } finally {
       setUpdatingUserId(null);
-    }
-  };
-
-  const handleTransferCoordinator = async () => {
-    if (!selectedMemberId) {
-      message.warning('Choose a member to promote to coordinator.');
-      return;
-    }
-
-    try {
-      setTransferring(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/auth/users/${selectedMemberId}/transfer-coordinator`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Unable to transfer coordinator');
-
-      onUserUpdate?.({
-        ...user,
-        role: 'member',
-        name: data.currentUser.fullName || data.currentUser.name,
-        fullName: data.currentUser.fullName || data.currentUser.name,
-        avatarUrl: data.currentUser.avatarUrl || data.currentUser.profilePhotoUrl,
-        profilePhotoUrl: data.currentUser.avatarUrl || data.currentUser.profilePhotoUrl
-      });
-
-      message.success(`${data.newCoordinator.fullName || data.newCoordinator.username} is now the coordinator.`);
-      setIsTransferModalOpen(false);
-      setSelectedMemberId(null);
-      await loadUsers();
-      window.dispatchEvent(new Event('teamProfilesChanged'));
-      navigate('#/dashboard');
-    } catch (error) {
-      message.error(error.message);
-    } finally {
-      setTransferring(false);
     }
   };
 
@@ -577,8 +496,8 @@ Show this ticket code at entry.
 
             <Tooltip title="Main Website">
               <Space onClick={() => navigate('#/')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
-                <Avatar src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
-                  {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                <Avatar src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
+                  {!profileAvatarSrc && profileAvatarInitials}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
                   <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
@@ -718,8 +637,8 @@ Show this ticket code at entry.
                 <Col xs={24} lg={14}>
                   <Card id="dashboard" bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', height: '100%' }}>
                     <div style={{ display: 'flex', gap: 20, alignItems: 'start' }} className="max-sm:flex-col text-left">
-                      <Avatar size={80} src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 32, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none', flexShrink: 0 }}>
-                        {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                      <Avatar size={80} src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 32, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none', flexShrink: 0 }}>
+                        {!profileAvatarSrc && profileAvatarInitials}
                       </Avatar>
                       <div style={{ flexGrow: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
@@ -828,9 +747,9 @@ Show this ticket code at entry.
               <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
                 <Col xs={24}>
                   <Card id="roles" bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
                       <Title level={4} style={{ margin: 0, color: '#ffffff' }}>Role Management</Title>
-                      <Button type="primary" onClick={() => setIsTransferModalOpen(true)}>Promote Member</Button>
+                      <Select value={roleFilter} onChange={setRoleFilter} style={{ minWidth: 180 }} options={[{ label: 'All Roles', value: 'all' }, ...roleOptions]} />
                     </div>
                     <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
                       <Col xs={24} sm={8}>
@@ -852,17 +771,13 @@ Show this ticket code at entry.
                         </Card>
                       </Col>
                     </Row>
-                    <Modal title="Transfer coordinator role" open={isTransferModalOpen} onCancel={() => setIsTransferModalOpen(false)} onOk={handleTransferCoordinator} okText="Promote selected member" confirmLoading={transferring}>
-                      <Text style={{ color: '#9aa0a6', display: 'block', marginBottom: 12 }}>Choose a current member account to become the new coordinator. Your current coordinator access will be moved to them.</Text>
-                      <Select placeholder="Select a member" value={selectedMemberId} onChange={setSelectedMemberId} style={{ width: '100%' }} options={users.filter((entry) => entry.role === 'member').map((entry) => ({ label: `${entry.fullName || entry.name || entry.username} (${entry.email})`, value: entry._id }))} />
-                    </Modal>
-                    <Table loading={loading} dataSource={users} rowKey="_id" pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} columns={[
+                    <Table loading={loading} dataSource={filteredUsers} rowKey="_id" pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} columns={[
                       {
                         title: 'User',
                         key: 'user',
                         render: (_, record) => (
                           <Space>
-                            <Avatar src={record.profilePhotoUrl || record.avatarUrl || undefined} size={38}>{(record.fullName || record.name || record.username || 'U').charAt(0).toUpperCase()}</Avatar>
+                            <Avatar src={record.profilePhotoUrl || record.avatarUrl || undefined} size={38}>{getDisplayInitials(record.fullName || record.name || record.username || 'User')}</Avatar>
                             <div>
                               <div className="font-semibold text-white">{record.fullName || record.name || record.username}</div>
                               <div className="text-sm text-[#9aa0a6]">{record.email}</div>

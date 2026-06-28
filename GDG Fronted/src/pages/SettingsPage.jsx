@@ -43,6 +43,13 @@ const googleTheme = {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+const getDisplayInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -51,6 +58,8 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
   const [bio, setBio] = useState(user?.bio || '');
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
+  const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
+  const profileAvatarInitials = getDisplayInitials(user?.fullName || user?.name || 'User');
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -236,8 +245,8 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
           <Space size="large" align="center">
             <Tooltip title="Your Profile">
               <Space onClick={() => navigate('#/dashboard')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
-                <Avatar src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
-                  {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                <Avatar src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
+                  {!profileAvatarSrc && profileAvatarInitials}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
                   <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
@@ -293,8 +302,8 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
                 <Title level={4} style={{ margin: '0 0 16px 0', color: '#ffffff' }}>Profile Picture</Title>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ position: 'relative' }}>
-                    <Avatar size={120} src={user?.avatarUrl || undefined} style={{ background: user?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 48, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none' }}>
-                      {!user?.avatarUrl && (user?.name?.charAt(0).toUpperCase() || 'U')}
+                    <Avatar size={120} src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontSize: 48, fontWeight: 'bold', boxShadow: '0 4px 12px rgba(66,133,244,0.3)', border: 'none' }}>
+                      {!profileAvatarSrc && profileAvatarInitials}
                     </Avatar>
                     <Tooltip title="Change Profile Picture">
                       <Button type="primary" shape="circle" size="large" icon={<CameraOutlined style={{ fontSize: 16 }} />} style={{ position: 'absolute', bottom: 0, right: 0, border: '2px solid #14161d', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', backgroundColor: '#4285F4' }} onClick={() => fileInputRef.current.click()} />
