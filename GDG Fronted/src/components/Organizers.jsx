@@ -140,7 +140,14 @@ const Organizers = () => {
       {/* Grid Layout */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-sm:gap-4 w-full text-center">
         {visibleTeam.map((member, idx) => {
-          const theme = themes[idx % 4];
+          // Create a Latin square pattern - ensures no adjacent cards have same color
+          // Row 1: blue(0)-red(1)-yellow(2)-green(3)
+          // Row 2: green(3)-blue(0)-red(1)-yellow(2)
+          // Row 3: yellow(2)-green(3)-blue(0)-red(1)
+          // Row 4: red(1)-yellow(2)-green(3)-blue(0)
+          const row = Math.floor(idx / 4);
+          const themeIndex = (idx + row * 3) % 4;
+          const theme = themes[themeIndex];
           const handleCardClick = () => {
             if (member._id) {
               window.location.hash = `#/profile/${member._id}`;

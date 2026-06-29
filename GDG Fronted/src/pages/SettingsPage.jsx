@@ -205,54 +205,98 @@ const SettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => {
             top: 0,
             zIndex: 101,
             width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
             padding: '10px 18px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
-            background: '#14161d'
+            background: '#14161d',
+            height: 'auto',
+            minHeight: 'auto'
           }}
         >
-          <Space size="middle">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{ fontSize: '16px', width: 40, height: 40 }}
-            />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5" />
-              <div>
-                <Text style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
-                  Settings
-                </Text>
-                <Text type="secondary" style={{ fontSize: '0.72rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
-                  Manage your profile
-                </Text>
-              </div>
-            </div>
-          </Space>
-
-          <Space size="large" align="center">
-            <Tooltip title="Your Profile">
-              <Space onClick={() => navigate('#/dashboard')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
-                <Avatar src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
-                  {!profileAvatarSrc && profileAvatarInitials}
-                </Avatar>
-                <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
-                  <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
-                    {user?.name || 'Developer'}
+          {/* Desktop Layout (md and above) - Original */}
+          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12 }}>
+            <Space size="middle">
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: '16px', width: 40, height: 40 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5" />
+                <div>
+                  <Text style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
+                    Settings
                   </Text>
-                  <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
-                    {getRoleLabel(user?.role)}
+                  <Text type="secondary" style={{ fontSize: '0.72rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
+                    Manage your profile
                   </Text>
                 </div>
-              </Space>
-            </Tooltip>
-          </Space>
+              </div>
+            </Space>
+
+            <Space size="large" align="center">
+              <Tooltip title="Your Profile">
+                <Space onClick={() => navigate('#/dashboard')} style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 20, transition: 'all 0.2s' }} className="hover:bg-white/5">
+                  <Avatar src={profileAvatarSrc} style={{ background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', fontWeight: 'bold', border: 'none' }}>
+                    {!profileAvatarSrc && profileAvatarInitials}
+                  </Avatar>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
+                      {user?.name || 'Developer'}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: '0.68rem', lineHeight: 1, color: '#9aa0a6' }}>
+                      {getRoleLabel(user?.role)}
+                    </Text>
+                  </div>
+                </Space>
+              </Tooltip>
+            </Space>
+          </div>
+
+          {/* Phone Layout (below md) - 1 row */}
+          <div className="md:hidden" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}>
+            <Space size="middle" style={{ marginRight: 'auto', minWidth: 0 }}>
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: '16px', width: 40, height: 40, flexShrink: 0 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5 flex-none" />
+                <div style={{ minWidth: 0 }}>
+                  <Text style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
+                    Settings
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: '0.6rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
+                    Your profile
+                  </Text>
+                </div>
+              </div>
+            </Space>
+
+            <Space size="small" align="center" style={{ flexShrink: 0 }}>
+              <Button
+                type="text"
+                icon={<HomeOutlined style={{ fontSize: 18, color: '#9aa0a6' }} />}
+                onClick={() => navigate('#/dashboard')}
+              />
+              <Avatar 
+                src={profileAvatarSrc} 
+                size={32}
+                style={{ 
+                  background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                  fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onClick={() => navigate('#/dashboard')}
+              >
+                {!profileAvatarSrc && profileAvatarInitials}
+              </Avatar>
+            </Space>
+          </div>
         </AntHeader>
 
         <Layout>

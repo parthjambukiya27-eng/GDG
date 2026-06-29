@@ -184,38 +184,7 @@ const AuthPage = ({ currentPath, navigate }) => {
     }
   };
 
-  const handleForgotClick = async () => {
-    if (!loginIdentifier.trim()) {
-      setErrors({ loginIdentifier: 'Please enter your username or email address first.' });
-      return;
-    }
 
-    setIsSubmitting(true);
-    setErrors({});
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: loginIdentifier.trim() })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to request password reset');
-      }
-
-      setSuccessMsg(data.message || 'Password reset link sent to your registered email.');
-      setTimeout(() => {
-        setSuccessMsg('');
-      }, 5000);
-    } catch (err) {
-      setErrors({ form: err.message });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-6 max-sm:p-4 relative z-10 select-none animate-[assistantSlideIn_0.35s_ease]">
@@ -406,13 +375,6 @@ const AuthPage = ({ currentPath, navigate }) => {
                       /> 
                       Remember me
                     </label>
-                    <button 
-                      type="button" 
-                      onClick={handleForgotClick}
-                      className="text-goog-blue bg-transparent border-0 cursor-pointer font-bold hover:underline focus:outline-none"
-                    >
-                      Forgot Password?
-                    </button>
                   </div>
 
                   <button 

@@ -139,43 +139,7 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
     }, 1500);
   };
 
-  const handleForgotClick = async () => {
-    if (!loginEmail.trim()) {
-      setErrors({ loginEmail: 'Please enter your IIT Bhilai email first.' });
-      return;
-    }
 
-    if (!isIITBEmail(loginEmail)) {
-      setErrors({ loginEmail: 'Please enter a valid official IIT Bhilai email (@iitbhilai.ac.in).' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrors({});
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail.trim().toLowerCase() })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to request password reset');
-      }
-
-      setSuccessMsg(data.message || 'Password reset instructions sent! Check your inbox.');
-      setTimeout(() => {
-        setSuccessMsg('');
-      }, 5000);
-    } catch (err) {
-      setErrors({ loginEmail: err.message });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div 
@@ -372,13 +336,6 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
                       /> 
                       Remember me
                     </label>
-                    <button 
-                      type="button" 
-                      onClick={handleForgotClick}
-                      className="text-goog-blue bg-transparent border-0 cursor-pointer font-medium hover:underline focus:outline-none"
-                    >
-                      Forgot Password?
-                    </button>
                   </div>
 
                   <button 

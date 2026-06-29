@@ -433,20 +433,16 @@ Show this ticket code at entry.
           top: 0, 
           zIndex: 101, 
           width: '100%', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          flexWrap: 'wrap',
-          gap: 12,
           padding: '10px 18px', 
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           background: '#14161d',
           height: 'auto',
-          minHeight: 64
+          minHeight: 'auto'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 10 }}>
-              <Space size="middle" style={{ flex: 1 }}>
+          {/* Desktop Layout (md and above) - Original */}
+          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12 }}>
+            <Space size="middle" style={{ flex: 1 }}>
               <Button
                 type="text"
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -466,40 +462,30 @@ Show this ticket code at entry.
               </div>
             </Space>
 
-          <div className="hidden md:block" style={{ width: '100%', maxWidth: 460 }}>
-            <Input
-              size="large"
-              prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
-              suffix={
-                <Tag color="default" style={{ margin: 0, fontSize: '0.72rem', backgroundColor: 'rgba(255,255,255,0.08)', border: 'none', color: '#9aa0a6', padding: '4px 10px', borderRadius: 16 }}>
-                  Ctrl K
-                </Tag>
-              }
-              placeholder="Search members, events, projects..."
-              value={searchQuery}
-              onChange={handleSearch}
-              allowClear
-              style={{
-                borderRadius: 28,
-                background: '#10131a',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#ffffff',
-                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.24)'
-              }}
-            />
-          </div>
-
-            <Space size="large" align="center" style={{ marginLeft: 'auto' }}>
-              {/* Search Icon for Mobile */}
-              <Button
-                type="text"
-                shape="circle"
-                icon={<SearchOutlined style={{ fontSize: 19, color: '#9aa0a6' }} />}
-                className="md:hidden"
-                onClick={() => setShowMobileSearch(!showMobileSearch)}
+            <div style={{ width: '100%', maxWidth: 460 }}>
+              <Input
+                size="large"
+                prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
+                suffix={
+                  <Tag color="default" style={{ margin: 0, fontSize: '0.72rem', backgroundColor: 'rgba(255,255,255,0.08)', border: 'none', color: '#9aa0a6', padding: '4px 10px', borderRadius: 16 }}>
+                    Ctrl K
+                  </Tag>
+                }
+                placeholder="Search members, events, projects..."
+                value={searchQuery}
+                onChange={handleSearch}
+                allowClear
+                style={{
+                  borderRadius: 28,
+                  background: '#10131a',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#ffffff',
+                  boxShadow: '0 16px 50px rgba(0, 0, 0, 0.24)'
+                }}
               />
+            </div>
 
-              {/* Profile icon clicks navigate directly to main site */}
+            <Space size="large" align="center">
               <Tooltip title="Main Website">
                 <Space 
                   onClick={() => navigate('#/')}
@@ -516,7 +502,7 @@ Show this ticket code at entry.
                   >
                     {!profileAvatarSrc && profileAvatarInitials}
                   </Avatar>
-                  <div style={{ display: 'flex', flexDirection: 'column' }} className="max-sm:hidden">
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Text style={{ fontWeight: 600, fontSize: '0.82rem', color: '#ffffff', lineHeight: 1.2 }}>
                       {user?.name || 'Developer'}
                     </Text>
@@ -529,8 +515,59 @@ Show this ticket code at entry.
             </Space>
           </div>
 
+          {/* Phone Layout (below md) - 1 row */}
+          <div className="md:hidden" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}>
+            <Space size="middle" style={{ marginRight: 'auto', minWidth: 0 }}>
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: '16px', width: 40, height: 40, flexShrink: 0 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5 flex-none" />
+                <div style={{ minWidth: 0 }}>
+                  <Text style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
+                    GDG on Campus
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: '0.6rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
+                    Dashboard
+                  </Text>
+                </div>
+              </div>
+            </Space>
+
+            <Space size="small" align="center" style={{ flexShrink: 0 }}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<SearchOutlined style={{ fontSize: 18, color: '#9aa0a6' }} />}
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+              />
+              <Button
+                type="text"
+                icon={<HomeOutlined style={{ fontSize: 18, color: '#9aa0a6' }} />}
+                onClick={() => navigate('#/')}
+              />
+              <Avatar 
+                src={profileAvatarSrc} 
+                size={32}
+                style={{ 
+                  background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
+                  fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onClick={() => navigate('#/')}
+              >
+                {!profileAvatarSrc && profileAvatarInitials}
+              </Avatar>
+            </Space>
+          </div>
+
+          {/* Mobile search input - appears below header when search is active */}
           {showMobileSearch && (
-            <div className="w-full pb-2 md:hidden">
+            <div style={{ width: '100%', paddingTop: 10, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }} className="md:hidden">
               <Input
                 size="large"
                 prefix={<SearchOutlined style={{ color: '#7f8fa4', fontSize: 18 }} />}
