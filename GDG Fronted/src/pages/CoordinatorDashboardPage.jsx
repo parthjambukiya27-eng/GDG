@@ -159,6 +159,7 @@ const roleOptions = [
   { label: 'Coordinator', value: 'coordinator' },
   { label: 'Core Member', value: 'coremember' },
   { label: 'Mentor', value: 'mentor' },
+  { label: 'Web Creator', value: 'web-creator' },
   { label: 'Member', value: 'member' },
   { label: 'User', value: 'user' }
 ];
@@ -179,6 +180,7 @@ const CoordinatorDashboardPage = ({ user, onLogout, onUserUpdate, navigate }) =>
   const [loading, setLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
   const [roleFilter, setRoleFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' for A-Z, 'desc' for Z-A
   const [events, setEvents] = useState(initialEvents);
   const [appliedProjects, setAppliedProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,9 +214,17 @@ const CoordinatorDashboardPage = ({ user, onLogout, onUserUpdate, navigate }) =>
   }), [users]);
 
   const filteredUsers = useMemo(() => {
-    if (roleFilter === 'all') return users;
-    return users.filter((entry) => entry.role === roleFilter);
-  }, [users, roleFilter]);
+    let filtered = roleFilter === 'all' ? users : users.filter((entry) => entry.role === roleFilter);
+    
+    // Sort by name (A-Z or Z-A)
+    filtered.sort((a, b) => {
+      const nameA = (a.fullName || a.name || a.username || '').toLowerCase();
+      const nameB = (b.fullName || b.name || b.username || '').toLowerCase();
+      return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+    
+    return filtered;
+  }, [users, roleFilter, sortOrder]);
 
   const isCoordinator = user?.role === 'coordinator';
   const profileAvatarSrc = user?.avatarUrl || user?.profilePhotoUrl || undefined;
@@ -328,6 +338,10 @@ Show this ticket code at entry.
         onUserUpdate?.({ ...user, role: 'coordinator' });
       }
       window.dispatchEvent(new Event('teamProfilesChanged'));
+      // Trigger web creators refresh if web-creator role was assigned
+      if (nextRole === 'web-creator') {
+        window.dispatchEvent(new Event('webCreatorsChanged'));
+      }
     } catch (error) {
       message.error(error.message);
     } finally {
@@ -751,7 +765,25 @@ Show this ticket code at entry.
                   <Card id="roles" bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
                       <Title level={4} style={{ margin: 0, color: '#ffffff' }}>Role Management</Title>
-                      <Select value={roleFilter} onChange={setRoleFilter} style={{ minWidth: 180 }} options={[{ label: 'All Roles', value: 'all' }, ...roleOptions]} />
+                      <Space>
+                        <Select value={roleFilter} onChange={setRoleFilter} style={{ minWidth: 180 }} options={[{ label: 'All Roles', value: 'all' }, ...roleOptions]} />
+                        <Button 
+                          type={sortOrder === 'asc' ? 'primary' : 'default'} 
+                          onClick={() => setSortOrder('asc')}
+                          title="Sort A-Z"
+                          style={{ minWidth: 60 }}
+                        >
+                          A → Z
+                        </Button>
+                        <Button 
+                          type={sortOrder === 'desc' ? 'primary' : 'default'} 
+                          onClick={() => setSortOrder('desc')}
+                          title="Sort Z-A"
+                          style={{ minWidth: 60 }}
+                        >
+                          Z → A
+                        </Button>
+                      </Space>
                     </div>
                     <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
                       <Col xs={24} sm={8}>

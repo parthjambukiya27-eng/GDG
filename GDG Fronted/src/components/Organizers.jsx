@@ -169,13 +169,13 @@ const Organizers = () => {
               </span>
 
               {/* Avatar Frame */}
-              <div className={`w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full overflow-hidden border-2 border-white/8 ${theme.borderAvatar} transition-all duration-300 shadow-md mb-4 flex-none z-10 mt-3`}>
+              <div className={`w-20 h-20 max-sm:w-16 max-sm:h-16 rounded-full overflow-hidden border-2 border-white/8 ${theme.borderAvatar} transition-all duration-300 shadow-md mb-4 flex-none z-10 mt-3 flex items-center justify-center`}>
                 {/* Use centralized avatar fallback */}
                 <AvatarFallback
                   src={member.profilePhotoUrl || member.avatarUrl || member.image}
                   name={member.nameDisplay || member.fullName || member.name}
-                  size={80}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  size={64}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 

@@ -48,6 +48,7 @@ const WebCreator = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [creators, setCreators] = useState(defaultCreators);
   const [loading, setLoading] = useState(true);
+  const [sliderStartIndex, setSliderStartIndex] = useState(0);
 
   const themeColors = [
     {
@@ -86,29 +87,33 @@ const WebCreator = () => {
       const data = await response.json();
       
       if (response.ok && Array.isArray(data.users) && data.users.length > 0) {
-        // Always start with Krish and Parth
+        // Always start with Krish and Parth (fixed, not counted as web creators)
         const baseCreators = [defaultCreators[0], defaultCreators[1]];
         
-        // Add fetched web creators with themes
+        // Add fetched web creators with themes (do NOT include GDG Web Team if web creators exist)
         const fetchedWithTheme = data.users.map((user, idx) => ({
           ...user,
           fullName: user.fullName || user.name,
           initials: (user.fullName || user.name).split(' ').map(n => n[0]).join('').toUpperCase(),
           skills: user.skills || ['Web Development', 'Frontend Engineering'],
+          role: user.role || 'Web Creator',
+          bio: user.bio || 'Skilled web developer contributing to the GDG platform.',
           ...themeColors[(idx + 2) % themeColors.length]
         }));
         
-        // Add fallback GDG Web Team card at the end
-        const withFallback = [...baseCreators, ...fetchedWithTheme, defaultCreators[2]];
-        setCreators(withFallback);
+        // Combine Krish + Parth + web creators (NO GDG Web Team)
+        setCreators([...baseCreators, ...fetchedWithTheme]);
+        setSliderStartIndex(0);
       } else {
-        // No web creators assigned, use all three defaults
+        // No web creators assigned, show all three defaults (Krish, Parth, GDG Web Team)
         setCreators(defaultCreators);
+        setSliderStartIndex(0);
       }
     } catch (error) {
       console.error('Error loading web creators:', error);
       // On error, use all defaults
       setCreators(defaultCreators);
+      setSliderStartIndex(0);
     } finally {
       setLoading(false);
     }
@@ -128,8 +133,31 @@ const WebCreator = () => {
   const activeDev = creators[activeIndex] || defaultCreators[0];
 
   const getDeviceImage = (dev) => {
-    return dev.profilePhotoUrl || dev.avatarUrl || dev.image || 'https://ui-avatars.com/api/?name=Unknown&background=1D2432&color=ffffff&rounded=true&size=256&bold=true';
+    // Prioritize user's uploaded profile photo
+    if (dev.profilePhotoUrl && dev.profilePhotoUrl.trim()) {
+      return dev.profilePhotoUrl;
+    }
+    if (dev.avatarUrl && dev.avatarUrl.trim()) {
+      return dev.avatarUrl;
+    }
+    // Fallback to hardcoded image or generated avatar
+    if (dev.image) {
+      return dev.image;
+    }
+    // Generate fallback avatar with user's name
+    const name = dev.fullName || dev.name || 'Unknown';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1D2432&color=ffffff&rounded=true&size=256&bold=true`;
   };
+
+  // Keep active item in view ONLY when it goes out of visible range
+  useEffect(() => {
+    // Only auto-scroll if active index is outside the visible window
+    if (activeIndex < sliderStartIndex) {
+      setSliderStartIndex(activeIndex);
+    } else if (activeIndex >= sliderStartIndex + 3 && creators.length > 3) {
+      setSliderStartIndex(Math.min(activeIndex - 2, creators.length - 3));
+    }
+  }, [activeIndex, creators.length]);
 
   return (
     <section id="web-creator" className="section web-creator-section py-16 max-sm:py-8">
@@ -217,12 +245,25 @@ const WebCreator = () => {
           </div>
         </div>
 
-        {/* Right Column: Tab Selector Buttons */}
+        {/* Right Column: Tab Selector Buttons with Slider */}
         <div className="flex flex-col gap-4 justify-center">
           <span className="text-[0.68rem] text-text-muted font-mono uppercase tracking-widest block pl-2">
             Select Creator Profile
           </span>
-          {creators.map((dev, idx) => {
+          
+          {/* Up Arrow - Show if there are more items to scroll up */}
+          {sliderStartIndex > 0 && (
+            <button
+              onClick={() => setSliderStartIndex(Math.max(0, sliderStartIndex - 1))}
+              className="w-full p-2 rounded-lg border border-white/10 bg-white/3 hover:bg-white/5 text-text-muted hover:text-text-light transition-all duration-200 flex items-center justify-center"
+            >
+              <i className="fa-solid fa-chevron-up text-xs"></i>
+            </button>
+          )}
+          
+          {/* Visible Buttons (max 3 at a time) */}
+          {creators.slice(sliderStartIndex, sliderStartIndex + 3).map((dev, localIdx) => {
+            const idx = sliderStartIndex + localIdx;
             const isActive = activeIndex === idx;
             return (
               <button
@@ -256,6 +297,16 @@ const WebCreator = () => {
               </button>
             );
           })}
+          
+          {/* Down Arrow - Show if there are more items to scroll down */}
+          {sliderStartIndex + 3 < creators.length && (
+            <button
+              onClick={() => setSliderStartIndex(Math.min(creators.length - 3, sliderStartIndex + 1))}
+              className="w-full p-2 rounded-lg border border-white/10 bg-white/3 hover:bg-white/5 text-text-muted hover:text-text-light transition-all duration-200 flex items-center justify-center"
+            >
+              <i className="fa-solid fa-chevron-down text-xs"></i>
+            </button>
+          )}
         </div>
       </div>
 
