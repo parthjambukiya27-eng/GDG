@@ -238,11 +238,15 @@ const CoordinatorSettingsPage = ({ user, onLogout, onUserUpdate, navigate }) => 
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             background: '#14161d',
             height: 'auto',
-            minHeight: 'auto'
+            minHeight: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12
           }}
         >
           {/* Desktop Layout (md and above) - Original */}
-          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12 }}>
+          <div className="hidden md:flex" style={{ alignItems: 'center', gap: 12, width: '100%' }}>
             <Space size="middle">
               <Button
                 type="text"

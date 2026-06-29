@@ -438,10 +438,14 @@ Show this ticket code at entry.
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           background: '#14161d',
           height: 'auto',
-          minHeight: 'auto'
+          minHeight: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12
         }}>
           {/* Desktop Layout (md and above) - Original */}
-          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12 }}>
+          <div className="hidden md:flex" style={{ alignItems: 'center', gap: 12, width: '100%' }}>
             <Space size="middle" style={{ flex: 1 }}>
               <Button
                 type="text"
@@ -516,7 +520,7 @@ Show this ticket code at entry.
           </div>
 
           {/* Phone Layout (below md) - 1 row */}
-          <div className="md:hidden" style={{ alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}>
+          <div className="md:hidden" style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
             <Space size="middle" style={{ marginRight: 'auto', minWidth: 0 }}>
               <Button
                 type="text"
@@ -524,34 +528,28 @@ Show this ticket code at entry.
                 onClick={() => setCollapsed(!collapsed)}
                 style={{ fontSize: '16px', width: 40, height: 40, flexShrink: 0 }}
               />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                 <img src="/asset/GDGlogo.jpeg" alt="GDG Logo" className="h-8 w-8 object-contain rounded-full border border-white/5 flex-none" />
                 <div style={{ minWidth: 0 }}>
-                  <Text style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
+                  <Text style={{ fontWeight: 700, fontSize: '1rem', color: '#ffffff', display: 'block', lineHeight: 1.2 }}>
                     GDG on Campus
                   </Text>
-                  <Text type="secondary" style={{ fontSize: '0.6rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
+                  <Text type="secondary" style={{ fontSize: '0.65rem', display: 'block', lineHeight: 1.1, color: '#9aa0a6' }}>
                     Dashboard
                   </Text>
                 </div>
               </div>
             </Space>
 
-            <Space size="small" align="center" style={{ flexShrink: 0 }}>
+            <Space size="large" align="center" style={{ flexShrink: 0 }}>
               <Button
                 type="text"
                 shape="circle"
                 icon={<SearchOutlined style={{ fontSize: 18, color: '#9aa0a6' }} />}
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
               />
-              <Button
-                type="text"
-                icon={<HomeOutlined style={{ fontSize: 18, color: '#9aa0a6' }} />}
-                onClick={() => navigate('#/')}
-              />
               <Avatar 
                 src={profileAvatarSrc} 
-                size={32}
                 style={{ 
                   background: profileAvatarSrc ? 'transparent' : 'linear-gradient(135deg, #4285F4 0%, #EA4335 50%, #FBBC05 100%)', 
                   fontWeight: 'bold',
