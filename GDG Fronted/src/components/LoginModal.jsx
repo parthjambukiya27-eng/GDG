@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
-  const [activeTab, setActiveTab] = useState('login'); // 'login', 'register', 'forgot'
+  const [activeTab, setActiveTab] = useState('login'); // 'login', 'register'
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -20,15 +20,13 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
   const [regBatch, setRegBatch] = useState('B.Tech 1st Year');
   const [selectedInterests, setSelectedInterests] = useState([]);
 
-  const [forgotEmail, setForgotEmail] = useState('');
-
   // Error States
   const [errors, setErrors] = useState({});
 
   // Sync tab with initialTab prop when modal opens
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(initialTab);
+      setActiveTab(initialTab === 'forgot' ? 'login' : initialTab);
       setSuccessMsg('');
       setIsSubmitting(false);
       setErrors({});
@@ -40,7 +38,6 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
       setRegPassword('');
       setRegConfirmPassword('');
       setSelectedInterests([]);
-      setForgotEmail('');
     }
   }, [isOpen, initialTab]);
 
@@ -142,16 +139,14 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
     }, 1500);
   };
 
-  const handleForgotSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    if (!isIITBEmail(forgotEmail)) {
-      newErrors.forgotEmail = 'Please enter a valid @iitbhilai.ac.in email address';
+  const handleForgotClick = async () => {
+    if (!loginEmail.trim()) {
+      setErrors({ loginEmail: 'Please enter your IIT Bhilai email first.' });
+      return;
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!isIITBEmail(loginEmail)) {
+      setErrors({ loginEmail: 'Please enter a valid official IIT Bhilai email (@iitbhilai.ac.in).' });
       return;
     }
 
@@ -162,7 +157,7 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() })
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase() })
       });
 
       const data = await response.json();
@@ -171,13 +166,12 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
         throw new Error(data.message || 'Failed to request password reset');
       }
 
-      setSuccessMsg('Password reset instructions sent! Check your inbox.');
+      setSuccessMsg(data.message || 'Password reset instructions sent! Check your inbox.');
       setTimeout(() => {
-        setActiveTab('login');
         setSuccessMsg('');
-      }, 3000);
+      }, 5000);
     } catch (err) {
-      setErrors({ forgotEmail: err.message });
+      setErrors({ loginEmail: err.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -283,22 +277,19 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
               </div>
 
               {/* Header Title (Dynamic depending on active tab) */}
-              {activeTab !== 'forgot' && (
-                <div className="mb-7.5 text-center">
-                  <h2 className="font-display text-[1.6rem] font-bold text-text-light mb-1 mt-0">
-                    {activeTab === 'login' ? 'Welcome Back' : 'Join Chapter'}
-                  </h2>
-                  <p className="text-text-muted text-[0.82rem] m-0">
-                    {activeTab === 'login' 
-                      ? 'Sign in to your GDG IIT Bhilai account' 
-                      : 'Create your official developer profile'}
-                  </p>
-                </div>
-              )}
+              <div className="mb-7.5 text-center">
+                <h2 className="font-display text-[1.6rem] font-bold text-text-light mb-1 mt-0">
+                  {activeTab === 'login' ? 'Welcome Back' : 'Join Chapter'}
+                </h2>
+                <p className="text-text-muted text-[0.82rem] m-0">
+                  {activeTab === 'login' 
+                    ? 'Sign in to your GDG IIT Bhilai account' 
+                    : 'Create your official developer profile'}
+                </p>
+              </div>
 
               {/* Form Tab Toggles */}
-              {activeTab !== 'forgot' && (
-                <div className="relative flex p-1 bg-white/3 border border-white/6 rounded-2xl mb-6">
+              <div className="relative flex p-1 bg-white/3 border border-white/6 rounded-2xl mb-6">
                   <button 
                     onClick={() => setActiveTab('login')} 
                     className={`flex-1 py-2 text-[0.85rem] font-semibold rounded-xl cursor-pointer transition-all duration-200 focus:outline-none border-0 ${
@@ -383,7 +374,7 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
                     </label>
                     <button 
                       type="button" 
-                      onClick={() => setActiveTab('forgot')}
+                      onClick={handleForgotClick}
                       className="text-goog-blue bg-transparent border-0 cursor-pointer font-medium hover:underline focus:outline-none"
                     >
                       Forgot Password?
@@ -594,62 +585,7 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
                 </form>
               )}
 
-              {/* ================= FORGOT PASSWORD TAB ================= */}
-              {activeTab === 'forgot' && (
-                <form onSubmit={handleForgotSubmit} className="flex flex-col gap-4 text-left animate-[assistantSlideIn_0.25s_ease]">
-                  <div className="text-center mb-4">
-                    <div className="w-12 h-12 rounded-full bg-goog-yellow/10 border border-goog-yellow/20 flex items-center justify-center text-goog-yellow text-xl mx-auto mb-3 shadow-[0_0_20px_rgba(251,188,5,0.1)]">
-                      <i className="fa-solid fa-key"></i>
-                    </div>
-                    <h2 className="font-display text-[1.45rem] font-bold text-text-light mb-1 mt-0">Reset Password</h2>
-                    <p className="text-text-muted text-[0.82rem] m-0 max-w-[280px] mx-auto">
-                      Enter your email to receive recovery instructions.
-                    </p>
-                  </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">IIT Bhilai Email</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-regular fa-envelope absolute left-4 text-white/35 text-[0.95rem]"></i>
-                      <input 
-                        type="email" 
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        placeholder="username@iitbhilai.ac.in" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.92rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.forgotEmail ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`} 
-                        required 
-                      />
-                    </div>
-                    {errors.forgotEmail && (
-                      <span className="text-goog-red text-[0.72rem] mt-0.5">{errors.forgotEmail}</span>
-                    )}
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="bg-goog-blue text-white border-0 rounded-xl p-3.5 text-[0.9rem] font-bold cursor-pointer mt-3 transition-all duration-200 hover:bg-[#357ae8] hover:-translate-y-[1px] shadow-lg shadow-goog-blue/15 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <i className="fa-solid fa-spinner animate-spin"></i> Processing...
-                      </>
-                    ) : (
-                      <>Send Verification Link</>
-                    )}
-                  </button>
-
-                  <button 
-                    type="button"
-                    onClick={() => setActiveTab('login')}
-                    className="bg-transparent border-0 text-goog-blue text-[0.82rem] font-semibold cursor-pointer hover:underline focus:outline-none mt-2"
-                  >
-                    Back to Sign In
-                  </button>
-                </form>
-              )}
             </>
           )}
 

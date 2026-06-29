@@ -578,17 +578,22 @@ const sendResetEmail = async (email, resetUrl, userName) => {
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: 'Email address is required' });
+    const { email, identifier } = req.body;
+    const target = (identifier || email || '').trim().toLowerCase();
+    
+    if (!target) {
+      return res.status(400).json({ message: 'Email address or username is required' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({
+      $or: [
+        { email: target },
+        { username: target }
+      ]
+    });
+
     if (!user) {
-      // Security practice: don't reveal if user exists, but here we can return 404 or success.
-      // Let's return 404 for clarity in development/debugging
-      return res.status(404).json({ message: 'No account registered with this email address' });
+      return res.status(404).json({ message: 'No account registered with this email or username' });
     }
 
     // Generate token
@@ -609,10 +614,20 @@ router.post('/forgot-password', async (req, res) => {
     const resetUrl = `${origin}/#/reset-password/${token}`;
 
     // Send email
-    const emailResult = await sendResetEmail(normalizedEmail, resetUrl, user.name);
+    const emailResult = await sendResetEmail(user.email, resetUrl, user.name);
+
+    // Helper to mask email for privacy
+    const maskEmail = (emailStr) => {
+      if (!emailStr || !emailStr.includes('@')) return emailStr;
+      const [name, domain] = emailStr.split('@');
+      if (name.length <= 2) return `${name[0]}*@${domain}`;
+      return `${name[0]}${'*'.repeat(name.length - 2)}${name[name.length - 1]}@${domain}`;
+    };
+    const maskedEmail = maskEmail(user.email);
 
     res.json({
-      message: 'Password reset instructions have been sent to your email address.',
+      message: `Password reset instructions have been sent to your registered email: ${maskedEmail}.`,
+      maskedEmail,
       resetLink: process.env.NODE_ENV !== 'production' ? resetUrl : undefined,
       emailResult
     });

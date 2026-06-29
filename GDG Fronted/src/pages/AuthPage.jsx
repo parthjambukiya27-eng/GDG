@@ -7,7 +7,6 @@ const AuthPage = ({ currentPath, navigate }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const [showForgot, setShowForgot] = useState(false);
 
   // Form Input States
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -21,8 +20,6 @@ const AuthPage = ({ currentPath, navigate }) => {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [selectedInterests, setSelectedInterests] = useState([]);
 
-  const [forgotEmail, setForgotEmail] = useState('');
-
   // Error States
   const [errors, setErrors] = useState({});
 
@@ -31,7 +28,6 @@ const AuthPage = ({ currentPath, navigate }) => {
     setSuccessMsg('');
     setIsSubmitting(false);
     setErrors({});
-    setShowForgot(false);
     setRegUsername('');
   }, [currentPath]);
 
@@ -188,16 +184,9 @@ const AuthPage = ({ currentPath, navigate }) => {
     }
   };
 
-  const handleForgotSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    if (!isValidEmail(forgotEmail)) {
-      newErrors.forgotEmail = 'Please enter a valid email address';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  const handleForgotClick = async () => {
+    if (!loginIdentifier.trim()) {
+      setErrors({ loginIdentifier: 'Please enter your username or email address first.' });
       return;
     }
 
@@ -208,7 +197,7 @@ const AuthPage = ({ currentPath, navigate }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() })
+        body: JSON.stringify({ identifier: loginIdentifier.trim() })
       });
 
       const data = await response.json();
@@ -217,13 +206,12 @@ const AuthPage = ({ currentPath, navigate }) => {
         throw new Error(data.message || 'Failed to request password reset');
       }
 
-      setSuccessMsg('Password reset link sent! Check your email.');
+      setSuccessMsg(data.message || 'Password reset link sent to your registered email.');
       setTimeout(() => {
-        setShowForgot(false);
         setSuccessMsg('');
-      }, 3000);
+      }, 5000);
     } catch (err) {
-      setErrors({ forgotEmail: err.message });
+      setErrors({ form: err.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -304,7 +292,9 @@ const AuthPage = ({ currentPath, navigate }) => {
               <div className="w-18 h-18 rounded-full bg-goog-green/10 border border-goog-green/30 flex items-center justify-center text-goog-green text-4xl mb-6 shadow-[0_0_40px_rgba(52,168,83,0.22)] animate-pulse">
                 <i className="fa-solid fa-circle-check"></i>
               </div>
-              <h3 className="font-display text-[1.5rem] font-bold text-text-light mb-3">Authentication Success</h3>
+              <h3 className="font-display text-[1.5rem] font-bold text-text-light mb-3">
+                {successMsg.includes('reset') || successMsg.includes('sent') ? 'Request Sent' : 'Authentication Success'}
+              </h3>
               <p className="text-text-muted text-[0.95rem] max-w-[320px] leading-relaxed m-0">
                 {successMsg}
               </p>
@@ -318,49 +308,45 @@ const AuthPage = ({ currentPath, navigate }) => {
               </div>
 
               {/* Title Header */}
-              {!showForgot && (
-                <div className="mb-8 text-center lg:text-left">
-                  <h2 className="font-display text-[1.8rem] font-extrabold text-text-light mb-2 mt-0">
-                    {isRegister ? 'Create Developer Profile' : 'Member Sign In'}
-                  </h2>
-                  <p className="text-text-muted text-[0.88rem] m-0">
-                    {isRegister 
-                      ? 'Register to unlock badges, event RSVP, and project hubs' 
-                      : 'Access your Google Developer Groups workspace'}
-                  </p>
-                </div>
-              )}
+              <div className="mb-8 text-center lg:text-left">
+                <h2 className="font-display text-[1.8rem] font-extrabold text-text-light mb-2 mt-0">
+                  {isRegister ? 'Create Developer Profile' : 'Member Sign In'}
+                </h2>
+                <p className="text-text-muted text-[0.88rem] m-0">
+                  {isRegister 
+                    ? 'Register to unlock badges, event RSVP, and project hubs' 
+                    : 'Access your Google Developer Groups workspace'}
+                </p>
+              </div>
 
               {/* Tab Selector */}
-              {!showForgot && (
-                <div className="relative flex p-1.5 bg-white/3 border border-white/6 rounded-2xl mb-8">
-                  <button 
-                    onClick={() => navigate('#/login')}
-                    className={`flex-1 py-2.5 text-[0.88rem] font-bold rounded-xl cursor-pointer transition-all duration-200 focus:outline-none border-0 ${
-                      !isRegister 
-                        ? 'bg-goog-blue text-white shadow-lg' 
-                        : 'bg-transparent text-text-muted hover:text-text-light'
-                    }`}
-                    type="button"
-                  >
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => navigate('#/register')}
-                    className={`flex-1 py-2.5 text-[0.88rem] font-bold rounded-xl cursor-pointer transition-all duration-200 focus:outline-none border-0 ${
-                      isRegister 
-                        ? 'bg-goog-blue text-white shadow-lg' 
-                        : 'bg-transparent text-text-muted hover:text-text-light'
-                    }`}
-                    type="button"
-                  >
-                    Register
-                  </button>
-                </div>
-              )}
+              <div className="relative flex p-1.5 bg-white/3 border border-white/6 rounded-2xl mb-8">
+                <button 
+                  onClick={() => navigate('#/login')}
+                  className={`flex-1 py-2.5 text-[0.88rem] font-bold rounded-xl cursor-pointer transition-all duration-200 focus:outline-none border-0 ${
+                    !isRegister 
+                      ? 'bg-goog-blue text-white shadow-lg' 
+                      : 'bg-transparent text-text-muted hover:text-text-light'
+                  }`}
+                  type="button"
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => navigate('#/register')}
+                  className={`flex-1 py-2.5 text-[0.88rem] font-bold rounded-xl cursor-pointer transition-all duration-200 focus:outline-none border-0 ${
+                    isRegister 
+                      ? 'bg-goog-blue text-white shadow-lg' 
+                      : 'bg-transparent text-text-muted hover:text-text-light'
+                  }`}
+                  type="button"
+                >
+                  Register
+                </button>
+              </div>
 
               {/* ================= LOGIN FORM ================= */}
-              {!isRegister && !showForgot && (
+              {!isRegister && (
                 <form onSubmit={handleLoginSubmit} className="flex flex-col gap-5 text-left">
                   {errors.form && (
                     <div className="bg-goog-red/10 border border-goog-red/20 text-goog-red p-3.5 rounded-xl text-[0.85rem] font-medium flex items-center gap-2 mb-2">
@@ -422,7 +408,7 @@ const AuthPage = ({ currentPath, navigate }) => {
                     </label>
                     <button 
                       type="button" 
-                      onClick={() => setShowForgot(true)}
+                      onClick={handleForgotClick}
                       className="text-goog-blue bg-transparent border-0 cursor-pointer font-bold hover:underline focus:outline-none"
                     >
                       Forgot Password?
@@ -445,254 +431,197 @@ const AuthPage = ({ currentPath, navigate }) => {
                 </form>
               )}
 
-              {/* ================= REGISTER FORM (Spacious & Detailed) ================= */}
-              {isRegister && !showForgot && (
-                <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4.5 text-left max-h-[480px] overflow-y-auto pr-1">
-                  {errors.form && (
-                    <div className="bg-goog-red/10 border border-goog-red/20 text-goog-red p-3.5 rounded-xl text-[0.85rem] font-medium flex items-center gap-2 mb-2">
-                      <i className="fa-solid fa-circle-exclamation"></i>
-                      {errors.form}
-                    </div>
-                  )}
-                  
-                  {/* Name */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Full Name</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-regular fa-user absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type="text" 
-                        value={regName}
-                        onChange={(e) => setRegName(e.target.value)}
-                        placeholder="John Doe" 
-                        className="w-full bg-white/4 border border-white/8 rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 focus:border-goog-blue"
-                        required 
-                      />
-                    </div>
-                  </div>
-
-                  {/* Username */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Username</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-regular fa-at absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type="text" 
-                        value={regUsername}
-                        onChange={(e) => setRegUsername(e.target.value)}
-                        placeholder="your_username" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.regUsername ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`}
-                        required 
-                      />
-                    </div>
-                    {errors.regUsername && (
-                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regUsername}</span>
-                    )}
-                  </div>
-
-                  {/* Email Address */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Email Address</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-regular fa-envelope absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type="email" 
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        placeholder="your.email@domain.com" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.regEmail ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`}
-                        required 
-                      />
-                    </div>
-                    {errors.regEmail && (
-                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regEmail}</span>
-                    )}
-                  </div>
-
-
-
-                  {/* Interests Badges */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Tech Interests / Tracks</label>
-                    <div className="flex flex-wrap gap-2">
-                      {['AI & Machine Learning', 'Web Development', 'Mobile App Dev', 'Cloud & DevOps', 'Cybersecurity'].map((interest, idx) => {
-                        const colors = [
-                          'goog-blue/10 border-goog-blue/20 text-goog-blue bg-goog-blue/20',
-                          'goog-red/10 border-goog-red/20 text-goog-red bg-goog-red/20',
-                          'goog-yellow/10 border-goog-yellow/20 text-goog-yellow bg-goog-yellow/20',
-                          'goog-green/10 border-goog-green/20 text-goog-green bg-goog-green/20',
-                          'goog-blue/10 border-goog-blue/20 text-goog-blue bg-goog-blue/20'
-                        ];
-                        const isSelected = selectedInterests.includes(interest);
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => toggleInterest(interest)}
-                            className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-medium border transition-all duration-200 cursor-pointer ${
-                              isSelected 
-                                ? colors[idx % 5] + ' border-transparent' 
-                                : 'bg-white/3 border-white/6 text-text-muted hover:border-white/12 hover:text-text-light'
-                            }`}
-                          >
-                            {isSelected ? '✓ ' : ''}{interest}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Password */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Password</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-solid fa-lock absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type={showPassword ? "text" : "password"}
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="Minimum 8 characters" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-12 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.regPassword ? 'border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`}
-                        required 
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 bg-transparent border-0 text-white/35 cursor-pointer hover:text-text-light focus:outline-none"
-                      >
-                        <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                      </button>
-                    </div>
-                    {regPassword && (
-                      <div className="flex flex-col gap-1 mt-1.5">
-                        <div className="flex justify-between text-[0.7rem]">
-                          <span className="text-text-muted">Password strength:</span>
-                          <span className={`${pwdStrength.textColor} font-bold`}>{pwdStrength.text}</span>
+                  {/* ================= REGISTER FORM (Spacious & Detailed) ================= */}
+                  {isRegister && (
+                    <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4.5 text-left max-h-[480px] overflow-y-auto pr-1">
+                      {errors.form && (
+                        <div className="bg-goog-red/10 border border-goog-red/20 text-goog-red p-3.5 rounded-xl text-[0.85rem] font-medium flex items-center gap-2 mb-2">
+                          <i className="fa-solid fa-circle-exclamation"></i>
+                          {errors.form}
                         </div>
-                        <div className="w-full bg-white/8 h-1 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-300 ${pwdStrength.color}`} 
-                            style={{ width: `${(pwdStrength.score / 4) * 100}%` }}
-                          ></div>
+                      )}
+                      
+                      {/* Name */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Full Name</label>
+                        <div className="relative flex items-center">
+                          <i className="fa-regular fa-user absolute left-4 text-white/35 text-[1rem]"></i>
+                          <input 
+                            type="text" 
+                            value={regName}
+                            onChange={(e) => setRegName(e.target.value)}
+                            placeholder="John Doe" 
+                            className="w-full bg-white/4 border border-white/8 rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 focus:border-goog-blue"
+                            required 
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Confirm Password */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Confirm Password</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-solid fa-lock absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type="password"
-                        value={regConfirmPassword}
-                        onChange={(e) => setRegConfirmPassword(e.target.value)}
-                        placeholder="••••••••" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.regConfirmPassword ? 'border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`}
-                        required 
-                      />
-                    </div>
-                    {errors.regConfirmPassword && (
-                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regConfirmPassword}</span>
-                    )}
-                  </div>
+                      {/* Username */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Username</label>
+                        <div className="relative flex items-center">
+                          <i className="fa-regular fa-at absolute left-4 text-white/35 text-[1rem]"></i>
+                          <input 
+                            type="text" 
+                            value={regUsername}
+                            onChange={(e) => setRegUsername(e.target.value)}
+                            placeholder="your_username" 
+                            className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
+                              errors.regUsername ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
+                            }`}
+                            required 
+                          />
+                        </div>
+                        {errors.regUsername && (
+                          <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regUsername}</span>
+                        )}
+                      </div>
 
-                  {/* Terms */}
-                  <div className="flex items-start gap-2.5 mt-2 select-none">
-                    <input 
-                      type="checkbox" 
-                      id="terms" 
-                      className="accent-goog-blue mt-0.5 w-4 h-4 flex-none" 
-                      required 
-                    />
-                    <label htmlFor="terms" className="text-text-muted text-[0.78rem] leading-normal cursor-pointer">
-                      I certify that the details provided are accurate, and I agree to actively participate and contribute to the developer ecosystem at IIT Bhilai.
-                    </label>
-                  </div>
+                      {/* Email Address */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Email Address</label>
+                        <div className="relative flex items-center">
+                          <i className="fa-regular fa-envelope absolute left-4 text-white/35 text-[1rem]"></i>
+                          <input 
+                            type="email" 
+                            value={regEmail}
+                            onChange={(e) => setRegEmail(e.target.value)}
+                            placeholder="your.email@domain.com" 
+                            className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
+                              errors.regEmail ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
+                            }`}
+                            required 
+                          />
+                        </div>
+                        {errors.regEmail && (
+                          <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regEmail}</span>
+                        )}
+                      </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="bg-goog-blue text-white border-0 rounded-xl p-4 text-[0.95rem] font-bold cursor-pointer mt-3 transition-all duration-200 hover:bg-[#357ae8] hover:-translate-y-[1px] shadow-lg shadow-goog-blue/20 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <i className="fa-solid fa-spinner animate-spin"></i> Building Profile...
-                      </>
-                    ) : (
-                      <>Create Profile & Join</>
-                    )}
-                  </button>
-                </form>
+
+
+                      {/* Interests Badges */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Tech Interests / Tracks</label>
+                        <div className="flex flex-wrap gap-2">
+                          {['AI & Machine Learning', 'Web Development', 'Mobile App Dev', 'Cloud & DevOps', 'Cybersecurity'].map((interest, idx) => {
+                            const colors = [
+                              'goog-blue/10 border-goog-blue/20 text-goog-blue bg-goog-blue/20',
+                              'goog-red/10 border-goog-red/20 text-goog-red bg-goog-red/20',
+                              'goog-yellow/10 border-goog-yellow/20 text-goog-yellow bg-goog-yellow/20',
+                              'goog-green/10 border-goog-green/20 text-goog-green bg-goog-green/20',
+                              'goog-blue/10 border-goog-blue/20 text-goog-blue bg-goog-blue/20'
+                            ];
+                            const isSelected = selectedInterests.includes(interest);
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => toggleInterest(interest)}
+                                className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-medium border transition-all duration-200 cursor-pointer ${
+                                  isSelected 
+                                    ? colors[idx % 5] + ' border-transparent' 
+                                    : 'bg-white/3 border-white/6 text-text-muted hover:border-white/12 hover:text-text-light'
+                                }`}
+                              >
+                                {isSelected ? '✓ ' : ''}{interest}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Password */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Password</label>
+                        <div className="relative flex items-center">
+                          <i className="fa-solid fa-lock absolute left-4 text-white/35 text-[1rem]"></i>
+                          <input 
+                            type={showPassword ? "text" : "password"}
+                            value={regPassword}
+                            onChange={(e) => setRegPassword(e.target.value)}
+                            placeholder="Minimum 8 characters" 
+                            className={`w-full bg-white/4 border rounded-xl py-3.5 pr-12 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
+                              errors.regPassword ? 'border-goog-red' : 'border-white/8 focus:border-goog-blue'
+                            }`}
+                            required 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 bg-transparent border-0 text-white/35 cursor-pointer hover:text-text-light focus:outline-none"
+                          >
+                            <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                          </button>
+                        </div>
+                        {regPassword && (
+                          <div className="flex flex-col gap-1 mt-1.5">
+                            <div className="flex justify-between text-[0.7rem]">
+                              <span className="text-text-muted">Password strength:</span>
+                              <span className={`${pwdStrength.textColor} font-bold`}>{pwdStrength.text}</span>
+                            </div>
+                            <div className="w-full bg-white/8 h-1 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-300 ${pwdStrength.color}`} 
+                                style={{ width: `${(pwdStrength.score / 4) * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Confirm Password</label>
+                        <div className="relative flex items-center">
+                          <i className="fa-solid fa-lock absolute left-4 text-white/35 text-[1rem]"></i>
+                          <input 
+                            type="password"
+                            value={regConfirmPassword}
+                            onChange={(e) => setRegConfirmPassword(e.target.value)}
+                            placeholder="••••••••" 
+                            className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
+                              errors.regConfirmPassword ? 'border-goog-red' : 'border-white/8 focus:border-goog-blue'
+                            }`}
+                            required 
+                          />
+                        </div>
+                        {errors.regConfirmPassword && (
+                          <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.regConfirmPassword}</span>
+                        )}
+                      </div>
+
+                      {/* Terms */}
+                      <div className="flex items-start gap-2.5 mt-2 select-none">
+                        <input 
+                          type="checkbox" 
+                          id="terms" 
+                          className="accent-goog-blue mt-0.5 w-4 h-4 flex-none" 
+                          required 
+                        />
+                        <label htmlFor="terms" className="text-text-muted text-[0.78rem] leading-normal cursor-pointer">
+                          I certify that the details provided are accurate, and I agree to actively participate and contribute to the developer ecosystem at IIT Bhilai.
+                        </label>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="bg-goog-blue text-white border-0 rounded-xl p-4 text-[0.95rem] font-bold cursor-pointer mt-3 transition-all duration-200 hover:bg-[#357ae8] hover:-translate-y-[1px] shadow-lg shadow-goog-blue/20 flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <i className="fa-solid fa-spinner animate-spin"></i> Building Profile...
+                          </>
+                        ) : (
+                          <>Create Profile & Join</>
+                        )}
+                      </button>
+                    </form>
+                  )}
+                </>
               )}
-
-              {/* ================= FORGOT PASSWORD FORM ================= */}
-              {showForgot && (
-                <form onSubmit={handleForgotSubmit} className="flex flex-col gap-5 text-left animate-[assistantSlideIn_0.25s_ease]">
-                  <div className="text-center mb-4">
-                    <div className="w-14 h-14 rounded-full bg-goog-yellow/10 border border-goog-yellow/20 flex items-center justify-center text-goog-yellow text-2xl mx-auto mb-4 shadow-[0_0_24px_rgba(251,188,5,0.12)]">
-                      <i className="fa-solid fa-key"></i>
-                    </div>
-                    <h2 className="font-display text-[1.6rem] font-extrabold text-text-light mb-2 mt-0">Reset Password</h2>
-                    <p className="text-text-muted text-[0.88rem] m-0 max-w-[300px] mx-auto leading-relaxed">
-                      Enter your account email. We will mail you recovery instructions.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[0.75rem] font-semibold text-text-muted uppercase tracking-wider">Email Address</label>
-                    <div className="relative flex items-center">
-                      <i className="fa-regular fa-envelope absolute left-4 text-white/35 text-[1rem]"></i>
-                      <input 
-                        type="email" 
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        placeholder="your.email@domain.com" 
-                        className={`w-full bg-white/4 border rounded-xl py-3.5 pr-4 pl-12 text-white font-sans text-[0.95rem] outline-none transition-all duration-300 focus:bg-white/7 ${
-                          errors.forgotEmail ? 'border-goog-red focus:border-goog-red' : 'border-white/8 focus:border-goog-blue'
-                        }`} 
-                        required 
-                      />
-                    </div>
-                    {errors.forgotEmail && (
-                      <span className="text-goog-red text-[0.75rem] mt-0.5">{errors.forgotEmail}</span>
-                    )}
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="bg-goog-blue text-white border-0 rounded-xl p-4 text-[0.95rem] font-bold cursor-pointer mt-4 transition-all duration-200 hover:bg-[#357ae8] hover:-translate-y-[1px] shadow-lg shadow-goog-blue/20 flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <i className="fa-solid fa-spinner animate-spin"></i> Processing...
-                      </>
-                    ) : (
-                      <>Send Password Reset Link</>
-                    )}
-                  </button>
-
-                  <button 
-                    type="button"
-                    onClick={() => setShowForgot(false)}
-                    className="bg-transparent border-0 text-goog-blue text-[0.88rem] font-semibold cursor-pointer hover:underline focus:outline-none mt-2"
-                  >
-                    Back to Sign In
-                  </button>
-                </form>
-              )}
-            </>
-          )}
 
           {/* BACK TO MAIN WEBSITE TRIGGER */}
           {!successMsg && (
