@@ -188,7 +188,7 @@ const AuthPage = ({ currentPath, navigate }) => {
     }
   };
 
-  const handleForgotSubmit = (e) => {
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -204,14 +204,29 @@ const AuthPage = ({ currentPath, navigate }) => {
     setIsSubmitting(true);
     setErrors({});
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccessMsg('Password reset instructions sent! Check your inbox.');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to request password reset');
+      }
+
+      setSuccessMsg('Password reset link sent! Check your email.');
       setTimeout(() => {
         setShowForgot(false);
         setSuccessMsg('');
       }, 3000);
-    }, 1500);
+    } catch (err) {
+      setErrors({ forgotEmail: err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

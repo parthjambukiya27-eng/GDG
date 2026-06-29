@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
   const [activeTab, setActiveTab] = useState('login'); // 'login', 'register', 'forgot'
   const [showPassword, setShowPassword] = useState(false);
@@ -140,7 +142,7 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
     }, 1500);
   };
 
-  const handleForgotSubmit = (e) => {
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -156,14 +158,29 @@ const LoginModal = ({ isOpen, initialTab = 'login', onClose }) => {
     setIsSubmitting(true);
     setErrors({});
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to request password reset');
+      }
+
       setSuccessMsg('Password reset instructions sent! Check your inbox.');
       setTimeout(() => {
         setActiveTab('login');
         setSuccessMsg('');
       }, 3000);
-    }, 1500);
+    } catch (err) {
+      setErrors({ forgotEmail: err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

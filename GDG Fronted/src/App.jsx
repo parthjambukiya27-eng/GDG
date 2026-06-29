@@ -16,6 +16,7 @@ import CoordinatorDashboardPage from './pages/CoordinatorDashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import CoordinatorSettingsPage from './pages/CoordinatorSettingsPage';
 import PublicProfilePage from './pages/PublicProfilePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import AssistantShell from './components/AssistantShell';
 import { initLegacyUI } from './utils/legacy-script';
 
@@ -121,6 +122,8 @@ function App() {
   const isCoordinatorDashboardRoute = currentPath === '#/coordinator-dashboard';
   const isSettingsRoute = currentPath === '#/settings';
   const isCoordinatorSettingsRoute = currentPath === '#/coordinator-settings';
+  const isResetPasswordRoute = currentPath.startsWith('#/reset-password/');
+  const resetPasswordToken = isResetPasswordRoute ? currentPath.split('/')[2] : null;
   const isProfileRoute = currentPath.startsWith('#/profile/');
   const profileUserId = isProfileRoute ? currentPath.split('/')[2] : null;
 
@@ -129,7 +132,9 @@ function App() {
       <Loader />
       <ThreeDCanvas />
 
-      {isProfileRoute && profileUserId ? (
+      {isResetPasswordRoute && resetPasswordToken ? (
+        <ResetPasswordPage token={resetPasswordToken} navigate={navigate} />
+      ) : isProfileRoute && profileUserId ? (
         <PublicProfilePage userId={profileUserId} navigate={navigate} />
       ) : isCoordinatorSettingsRoute && user?.role === 'coordinator' ? (
         <CoordinatorSettingsPage user={user} onLogout={handleLogout} onUserUpdate={syncUser} navigate={navigate} />
