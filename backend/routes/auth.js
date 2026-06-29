@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const RbacRoles = ['coordinator', 'coremember', 'mentor', 'member', 'user'];
+const RbacRoles = ['coordinator', 'coremember', 'mentor', 'member', 'web-creator', 'user'];
 
 const getTokenFromHeader = (req) => {
   const authHeader = req.header('Authorization');
@@ -252,6 +252,34 @@ router.get('/featured-team', async (req, res) => {
     res.json({ users: formattedUsers });
   } catch (error) {
     console.error('Featured Team Error:', error.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// @route   GET api/auth/featured-web-creators
+// @desc    Return featured web creators for the web creator section
+// @access  Public
+router.get('/featured-web-creators', async (req, res) => {
+  try {
+    const users = await User.find({ role: 'web-creator' })
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    const formattedUsers = users.map((user) => ({
+      _id: user._id,
+      name: user.name,
+      fullName: user.fullName || user.name,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      profilePhotoUrl: user.profilePhotoUrl || user.avatarUrl,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl || user.profilePhotoUrl
+    }));
+
+    res.json({ users: formattedUsers });
+  } catch (error) {
+    console.error('Featured Web Creators Error:', error.message);
     res.status(500).json({ message: 'Server Error' });
   }
 });

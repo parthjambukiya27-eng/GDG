@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+const defaultCreators = [
+  {
+    name: 'Krish Shiyani',
+    role: 'Web Developer',
+    initials: 'KS',
+    image: 'https://ui-avatars.com/api/?name=Krish+Shiyani&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
+    skills: ['React 19', 'Vite', 'Tailwind CSS', 'WebGL & Three.js'],
+    bio: 'Lead frontend engineer focusing on interactive WebGL components and high-performance React architectures.',
+    color: 'goog-blue',
+    badgeColor: 'bg-goog-blue/10 text-goog-blue border-goog-blue/20',
+    activeBorder: 'border-goog-blue/50',
+    glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(66,133,244,0.08),transparent_50%)]',
+    accentGlow: 'shadow-[0_0_30px_rgba(66,133,244,0.2)]'
+  },
+  {
+    name: 'Parth Jambukiya',
+    role: 'Web Developer',
+    initials: 'PJ',
+    image: 'https://ui-avatars.com/api/?name=Parth+Jambukiya&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
+    skills: ['JavaScript ES6', 'CSS3 / Animation', 'GSAP', 'Responsive Design'],
+    bio: 'Frontend developer specializing in sleek UI transitions, responsive layouts, and user interaction design.',
+    color: 'goog-red',
+    badgeColor: 'bg-goog-red/10 text-goog-red border-goog-red/20',
+    activeBorder: 'border-goog-red/50',
+    glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(234,67,53,0.07),transparent_50%)]',
+    accentGlow: 'shadow-[0_0_30px_rgba(234,67,53,0.15)]'
+  },
+  {
+    name: 'GDG Web Team',
+    role: 'Design & Maintenance',
+    initials: 'GD',
+    image: 'https://ui-avatars.com/api/?name=GDG+Web+Team&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
+    skills: ['UI/UX Design', 'Performance Tuning', 'SEO Optimization', 'Git Workflow'],
+    bio: 'Core development group responsible for UI styling guidelines, performance optimizations, and site maintenance.',
+    color: 'goog-green',
+    badgeColor: 'bg-goog-green/10 text-goog-green border-goog-green/20',
+    activeBorder: 'border-goog-green/50',
+    glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(52,168,83,0.07),transparent_50%)]',
+    accentGlow: 'shadow-[0_0_30px_rgba(52,168,83,0.15)]'
+  }
+];
 
 const WebCreator = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [creators, setCreators] = useState(defaultCreators);
+  const [loading, setLoading] = useState(true);
 
-  const creators = [
+  const themeColors = [
     {
-      name: 'Krish Shiyani',
-      role: 'Web Developer',
-      initials: 'KS',
-      image: 'https://ui-avatars.com/api/?name=Krish+Shiyani&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
-      skills: ['React 19', 'Vite', 'Tailwind CSS', 'WebGL & Three.js'],
-      bio: 'Lead frontend engineer focusing on interactive WebGL components and high-performance React architectures.',
       color: 'goog-blue',
       badgeColor: 'bg-goog-blue/10 text-goog-blue border-goog-blue/20',
       activeBorder: 'border-goog-blue/50',
@@ -18,12 +58,6 @@ const WebCreator = () => {
       accentGlow: 'shadow-[0_0_30px_rgba(66,133,244,0.2)]'
     },
     {
-      name: 'Parth Jambukiya',
-      role: 'Web Developer',
-      initials: 'PJ',
-      image: 'https://ui-avatars.com/api/?name=Parth+Jambukiya&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
-      skills: ['JavaScript ES6', 'CSS3 / Animation', 'GSAP', 'Responsive Design'],
-      bio: 'Frontend developer specializing in sleek UI transitions, responsive layouts, and user interaction design.',
       color: 'goog-red',
       badgeColor: 'bg-goog-red/10 text-goog-red border-goog-red/20',
       activeBorder: 'border-goog-red/50',
@@ -31,12 +65,13 @@ const WebCreator = () => {
       accentGlow: 'shadow-[0_0_30px_rgba(234,67,53,0.15)]'
     },
     {
-      name: 'GDG Web Team',
-      role: 'Design & Maintenance',
-      initials: 'GD',
-      image: 'https://ui-avatars.com/api/?name=GDG+Web+Team&background=1D2432&color=ffffff&rounded=true&size=256&bold=true',
-      skills: ['UI/UX Design', 'Performance Tuning', 'SEO Optimization', 'Git Workflow'],
-      bio: 'Core development group responsible for UI styling guidelines, performance optimizations, and site maintenance.',
+      color: 'goog-yellow',
+      badgeColor: 'bg-goog-yellow/10 text-goog-yellow border-goog-yellow/20',
+      activeBorder: 'border-goog-yellow/50',
+      glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(251,188,5,0.07),transparent_50%)]',
+      accentGlow: 'shadow-[0_0_30px_rgba(251,188,5,0.2)]'
+    },
+    {
       color: 'goog-green',
       badgeColor: 'bg-goog-green/10 text-goog-green border-goog-green/20',
       activeBorder: 'border-goog-green/50',
@@ -45,7 +80,56 @@ const WebCreator = () => {
     }
   ];
 
-  const activeDev = creators[activeIndex];
+  const loadWebCreators = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/featured-web-creators`);
+      const data = await response.json();
+      
+      if (response.ok && Array.isArray(data.users) && data.users.length > 0) {
+        // Always start with Krish and Parth
+        const baseCreators = [defaultCreators[0], defaultCreators[1]];
+        
+        // Add fetched web creators with themes
+        const fetchedWithTheme = data.users.map((user, idx) => ({
+          ...user,
+          fullName: user.fullName || user.name,
+          initials: (user.fullName || user.name).split(' ').map(n => n[0]).join('').toUpperCase(),
+          skills: user.skills || ['Web Development', 'Frontend Engineering'],
+          ...themeColors[(idx + 2) % themeColors.length]
+        }));
+        
+        // Add fallback GDG Web Team card at the end
+        const withFallback = [...baseCreators, ...fetchedWithTheme, defaultCreators[2]];
+        setCreators(withFallback);
+      } else {
+        // No web creators assigned, use all three defaults
+        setCreators(defaultCreators);
+      }
+    } catch (error) {
+      console.error('Error loading web creators:', error);
+      // On error, use all defaults
+      setCreators(defaultCreators);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWebCreators();
+
+    const handleWebCreatorsRefresh = () => {
+      loadWebCreators();
+    };
+
+    window.addEventListener('webCreatorsChanged', handleWebCreatorsRefresh);
+    return () => window.removeEventListener('webCreatorsChanged', handleWebCreatorsRefresh);
+  }, []);
+
+  const activeDev = creators[activeIndex] || defaultCreators[0];
+
+  const getDeviceImage = (dev) => {
+    return dev.profilePhotoUrl || dev.avatarUrl || dev.image || 'https://ui-avatars.com/api/?name=Unknown&background=1D2432&color=ffffff&rounded=true&size=256&bold=true';
+  };
 
   return (
     <section id="web-creator" className="section web-creator-section py-16 max-sm:py-8">
@@ -82,7 +166,7 @@ const WebCreator = () => {
           {/* Large Avatar */}
           <div className={`w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-white/10 shadow-xl flex-none ${activeDev.accentGlow} transition-all duration-300`}>
             <img 
-              src={activeDev.image} 
+              src={getDeviceImage(activeDev)} 
               alt={activeDev.name} 
               className="w-full h-full object-cover"
             />
@@ -106,11 +190,11 @@ const WebCreator = () => {
               </h3>
               
               <p className="text-goog-blue text-sm font-mono tracking-wide m-0 mb-4 font-semibold uppercase">
-                {activeDev.role}
+                {activeDev.role || 'Web Creator'}
               </p>
               
               <p className="text-text-muted text-sm sm:text-[0.92rem] leading-relaxed m-0 mb-6 max-w-lg">
-                {activeDev.bio}
+                {activeDev.bio || 'Skilled web developer contributing to the GDG platform.'}
               </p>
             </div>
 
@@ -120,7 +204,7 @@ const WebCreator = () => {
                 Core Specialization
               </span>
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {activeDev.skills.map((skill, idx) => (
+                {(activeDev.skills || ['Web Development', 'Frontend Engineering']).map((skill, idx) => (
                   <span 
                     key={idx} 
                     className="px-3 py-1 rounded-xl text-xs font-semibold bg-white/4 border border-white/8 text-text-light hover:bg-white/8 transition-colors duration-200"
@@ -153,7 +237,7 @@ const WebCreator = () => {
                 <div className="flex items-center gap-4">
                   {/* Miniature Avatar */}
                   <div className={`w-10 h-10 rounded-full overflow-hidden border ${isActive ? 'border-white/20' : 'border-white/10'} flex-none`}>
-                    <img src={dev.image} alt={dev.name} className="w-full h-full object-cover" />
+                    <img src={getDeviceImage(dev)} alt={dev.name} className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h4 className={`m-0 text-sm font-bold transition-colors duration-200 ${isActive ? 'text-text-light' : 'text-text-muted group-hover:text-text-light'}`}>
@@ -182,14 +266,14 @@ const WebCreator = () => {
             className="rounded-2xl border border-white/8 bg-[#111319] p-3 flex flex-col items-center justify-center text-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.18)] min-h-[150px] max-sm:p-2 max-sm:min-h-[120px]"
           >
             <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 flex-none">
-              <img src={dev.image} alt={dev.name} className="w-full h-full object-cover" />
+              <img src={getDeviceImage(dev)} alt={dev.name} className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0">
               <h4 className="m-0 text-[0.82rem] font-semibold text-text-light leading-tight">
                 {dev.name}
               </h4>
               <p className="m-0 text-[0.68rem] text-text-muted font-mono mt-1 leading-tight">
-                {dev.role}
+                {dev.role || 'Web Creator'}
               </p>
             </div>
           </article>

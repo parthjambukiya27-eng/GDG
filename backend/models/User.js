@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['coordinator', 'coremember', 'mentor', 'member', 'user'],
+    enum: ['coordinator', 'coremember', 'mentor', 'member', 'web-creator', 'user'],
     default: 'user'
   },
   profilePhotoUrl: {
